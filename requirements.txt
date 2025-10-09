@@ -1,4 +1,4 @@
-# CharForgeX Requirements
+# ai-gen Requirements
 # Ultra-realistic LoRA training and media generation
 
 # Core dependencies

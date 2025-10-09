@@ -147,7 +147,7 @@ bash runpod_quickstart.sh
    ```bash
    # On RunPod terminal
    cd /workspace
-   # Upload your CharForgeX folder here
+   # Upload your ai-gen folder here
    ```
 
 3. **Run Quick-Start**

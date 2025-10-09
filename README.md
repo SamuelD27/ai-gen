@@ -26,7 +26,7 @@
 
 ## ⚠️ Important Notice
 
-**CharForgeX has NO CONTENT RESTRICTIONS by default.**
+**ai-gen has NO CONTENT RESTRICTIONS by default.**
 
 - No safety filters
 - No content moderation
@@ -45,7 +45,8 @@
 
 ```bash
 # Clone and enter directory
-cd CharForgeX
+git clone https://github.com/SamuelD27/ai-gen.git
+cd ai-gen
 
 # Run automated installer
 bash install.sh
@@ -192,7 +193,7 @@ RUNPOD_API_KEY=your_runpod_key    # Optional for cloud compute
 
 ### Quick Links
 
-- [Features](#features) - What CharForgeX can do
+- [Features](#features) - What ai-gen can do
 - [CLI Reference](#cli-reference) - Command-line usage
 - [GUI Guide](#gui-interface) - Web interface tutorial
 - [Configuration](#configuration-guide) - Settings and options

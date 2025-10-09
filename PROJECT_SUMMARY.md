@@ -1,8 +1,8 @@
-# CharForgeX - Project Summary
+# ai-gen - Project Summary
 
 ## Overview
 
-CharForgeX is a **professional-grade system for training photorealistic LoRAs and generating ultra-realistic images and videos** with zero content restrictions. Built for creators who demand full control over their AI media generation pipeline.
+ai-gen is a **professional-grade system for training photorealistic LoRAs and generating ultra-realistic images and videos** with zero content restrictions. Built for creators who demand full control over their AI media generation pipeline.
 
 ## What Has Been Built
 
@@ -134,7 +134,7 @@ CharForgeX is a **professional-grade system for training photorealistic LoRAs an
 ## Architecture Highlights
 
 ```
-CharForgeX/
+ai-gen/
 ├── core/                 # Configuration & system core
 ├── dataset/              # Data processing pipeline
 │   ├── cleaning.py       # ✅ Face detection, dedup, quality
@@ -276,7 +276,7 @@ The system is designed for easy extension:
 
 ## Conclusion
 
-CharForgeX provides a **complete, production-ready foundation** for:
+ai-gen provides a **complete, production-ready foundation** for:
 - Training photorealistic LoRAs
 - Generating unrestricted images/videos
 - Processing datasets at scale

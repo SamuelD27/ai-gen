@@ -1,10 +1,10 @@
 #!/bin/bash
-# CharForgeX Installation Script
+# ai-gen Installation Script
 
 set -e
 
 echo "================================"
-echo "CharForgeX Installation"
+echo "ai-gen Installation"
 echo "================================"
 echo ""
 
@@ -64,7 +64,7 @@ echo "✓ PyTorch installed"
 echo ""
 
 # Install main requirements
-echo "Installing CharForgeX dependencies..."
+echo "Installing ai-gen dependencies..."
 pip install -r requirements.txt
 echo "✓ Dependencies installed"
 echo ""

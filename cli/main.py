@@ -1,5 +1,5 @@
 """
-CharForgeX unified CLI interface.
+ai-gen unified CLI interface.
 Complete control over LoRA training and media generation.
 """
 
@@ -18,7 +18,7 @@ from core import load_config, get_config
 @click.pass_context
 def cli(ctx, config):
     """
-    CharForgeX - Professional LoRA Training & Media Generation
+    ai-gen - Professional LoRA Training & Media Generation
 
     No content restrictions. Maximum creative freedom.
     """

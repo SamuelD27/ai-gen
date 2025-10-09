@@ -1,5 +1,5 @@
 """
-Core configuration system for CharForgeX.
+Core configuration system for ai-gen.
 Supports local and cloud compute modes with flexible model/dataset management.
 """
 
@@ -207,8 +207,8 @@ class VideoGenerationConfig:
 
 
 @dataclass
-class CharForgeXConfig:
-    """Main CharForgeX configuration."""
+class ai-genConfig:
+    """Main ai-gen configuration."""
     # Core settings
     project_name: str = "charforgex"
     work_dir: str = "./workspace"
@@ -241,7 +241,7 @@ class CharForgeXConfig:
         Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def from_yaml(cls, path: str) -> "CharForgeXConfig":
+    def from_yaml(cls, path: str) -> "ai-genConfig":
         """Load configuration from YAML file."""
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
@@ -307,29 +307,29 @@ class CharForgeXConfig:
 
 
 # Global configuration instance
-_global_config: Optional[CharForgeXConfig] = None
+_global_config: Optional[ai-genConfig] = None
 
 
-def get_config() -> CharForgeXConfig:
+def get_config() -> ai-genConfig:
     """Get the global configuration instance."""
     global _global_config
     if _global_config is None:
-        _global_config = CharForgeXConfig()
+        _global_config = ai-genConfig()
     return _global_config
 
 
-def set_config(config: CharForgeXConfig):
+def set_config(config: ai-genConfig):
     """Set the global configuration instance."""
     global _global_config
     _global_config = config
 
 
-def load_config(path: str = "config.yaml") -> CharForgeXConfig:
+def load_config(path: str = "config.yaml") -> ai-genConfig:
     """Load and set global configuration from file."""
     if os.path.exists(path):
-        config = CharForgeXConfig.from_yaml(path)
+        config = ai-genConfig.from_yaml(path)
     else:
-        config = CharForgeXConfig()
+        config = ai-genConfig()
         config.to_yaml(path)  # Create default config
 
     set_config(config)

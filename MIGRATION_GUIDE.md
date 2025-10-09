@@ -1,8 +1,8 @@
-# Migration Guide: Old CharForge → CharForgeX
+# Migration Guide: Old CharForge → ai-gen
 
 ## Overview
 
-This guide helps you transition from the original CharForge implementation to the new CharForgeX system.
+This guide helps you transition from the original CharForge implementation to the new ai-gen system.
 
 ## Key Differences
 
@@ -72,11 +72,11 @@ This guide helps you transition from the original CharForge implementation to th
 cp -r CharForge CharForge_backup
 ```
 
-### 2. Set Up CharForgeX
+### 2. Set Up ai-gen
 
 ```bash
 # Install new system
-cd CharForgeX
+cd ai-gen
 bash install.sh
 ```
 
@@ -95,7 +95,7 @@ nano config.yaml
 
 ```bash
 # Old location: CharForge/scratch/{character}/sheet/
-# New location: CharForgeX/workspace/datasets/{character}/
+# New location: ai-gen/workspace/datasets/{character}/
 
 # Copy datasets
 mkdir -p workspace/datasets
@@ -106,7 +106,7 @@ cp -r ../CharForge/scratch/*/sheet workspace/datasets/
 
 ```bash
 # Old location: CharForge/scratch/{character}/
-# New location: CharForgeX/output/loras/{character}/
+# New location: ai-gen/output/loras/{character}/
 
 # Copy LoRAs
 mkdir -p output/loras
@@ -117,7 +117,7 @@ find ../CharForge/scratch -name "*.safetensors" -exec cp {} output/loras/ \;
 
 ```bash
 # Old location: CharForge/scratch/{character}/output/
-# New location: CharForgeX/output/images/
+# New location: ai-gen/output/images/
 
 # Copy outputs
 mkdir -p output/images
@@ -464,7 +464,7 @@ If you need to go back to old system:
 
 ```bash
 # Restore backup
-mv CharForge CharForgeX_new
+mv CharForge ai-gen_new
 mv CharForge_backup CharForge
 cd CharForge
 
@@ -493,7 +493,7 @@ Keep old system as backup for first month.
 ## Quick Migration Checklist
 
 - [ ] Back up old installation
-- [ ] Install CharForgeX
+- [ ] Install ai-gen
 - [ ] Copy .env file
 - [ ] Create config.yaml
 - [ ] Migrate datasets
@@ -506,4 +506,4 @@ Keep old system as backup for first month.
 
 ---
 
-**Welcome to CharForgeX! Enjoy your unrestricted creative freedom.** 🎨🚀
+**Welcome to ai-gen! Enjoy your unrestricted creative freedom.** 🎨🚀

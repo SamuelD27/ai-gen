@@ -1,4 +1,4 @@
-# CharForgeX Development Roadmap
+# ai-gen Development Roadmap
 
 ## ✅ Phase 1: Foundation (COMPLETED)
 

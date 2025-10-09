@@ -1,7 +1,7 @@
-"""Core CharForgeX modules."""
+"""Core ai-gen modules."""
 
 from .config import (
-    CharForgeXConfig,
+    ai-genConfig,
     ComputeConfig,
     CloudConfig,
     DatasetConfig,
@@ -18,7 +18,7 @@ from .config import (
 )
 
 __all__ = [
-    "CharForgeXConfig",
+    "ai-genConfig",
     "ComputeConfig",
     "CloudConfig",
     "DatasetConfig",

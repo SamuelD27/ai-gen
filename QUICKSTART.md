@@ -1,10 +1,10 @@
-# CharForgeX Quick Start Guide
+# ai-gen Quick Start Guide
 
 ## Installation (5 minutes)
 
 ```bash
 # 1. Clone and enter directory
-cd CharForgeX
+cd ai-gen
 
 # 2. Run installation script
 bash install.sh

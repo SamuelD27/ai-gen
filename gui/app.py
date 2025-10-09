@@ -1,5 +1,5 @@
 """
-CharForgeX Gradio GUI - Professional LoRA Training & Media Generation
+ai-gen Gradio GUI - Professional LoRA Training & Media Generation
 No content restrictions. Maximum creative freedom.
 """
 
@@ -371,9 +371,9 @@ def create_settings_tab():
 
 def create_app():
     """Create the main Gradio application."""
-    with gr.Blocks(title="CharForgeX", theme=gr.themes.Soft()) as app:
+    with gr.Blocks(title="ai-gen", theme=gr.themes.Soft()) as app:
         gr.Markdown("""
-        # CharForgeX - Professional LoRA Training & Media Generation
+        # ai-gen - Professional LoRA Training & Media Generation
 
         **Ultra-realistic image and video generation with custom LoRAs**
 

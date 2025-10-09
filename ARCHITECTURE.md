@@ -1,4 +1,4 @@
-# CharForgeX - Professional LoRA Training & Ultra-Realistic Media Generation
+# ai-gen - Professional LoRA Training & Ultra-Realistic Media Generation
 
 ## System Architecture
 
@@ -12,7 +12,7 @@
 ### Module Overview
 
 ```
-CharForgeX/
+ai-gen/
 ├── core/                       # Core system components
 │   ├── config.py              # Unified configuration system
 │   ├── models.py              # Model registry and management

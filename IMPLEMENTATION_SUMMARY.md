@@ -1,4 +1,4 @@
-# CharForgeX Implementation Summary
+# ai-gen Implementation Summary
 
 ## 🎉 What Has Been Delivered
 
@@ -15,7 +15,7 @@ Your repository has been **completely redesigned and rebuilt** from the ground u
 - YAML serialization
 - No safety checkers by default
 - **Key Features:**
-  - `CharForgeXConfig`: Main configuration
+  - `ai-genConfig`: Main configuration
   - `ComputeConfig`: Device/precision settings
   - `CloudConfig`: RunPod integration ready
   - `DatasetConfig`: Processing parameters
@@ -182,7 +182,7 @@ Your repository has been **completely redesigned and rebuilt** from the ground u
 
 Complete Python package structure with proper `__init__.py` files:
 ```
-CharForgeX/
+ai-gen/
 ├── core/
 │   ├── __init__.py ✓
 │   └── config.py ✓
@@ -383,7 +383,7 @@ With this foundation, you can:
 
 ## 🏆 Comparison to Original Repo
 
-| Feature | Original | CharForgeX |
+| Feature | Original | ai-gen |
 |---------|----------|------------|
 | Safety Filters | ✅ Yes | ❌ No (user choice) |
 | Models Supported | Flux only | Flux + extensible |

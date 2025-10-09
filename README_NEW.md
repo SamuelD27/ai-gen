@@ -1,4 +1,4 @@
-# CharForgeX - Professional LoRA Training & Ultra-Realistic Media Generation
+# ai-gen - Professional LoRA Training & Ultra-Realistic Media Generation
 
 > **No content restrictions. Maximum creative freedom. Production-ready system for training photorealistic LoRAs and generating high-fidelity images/videos.**
 
@@ -30,8 +30,8 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/CharForgeX
-cd CharForgeX
+git clone https://github.com/yourusername/ai-gen
+cd ai-gen
 
 # Create virtual environment
 python -m venv venv
@@ -184,7 +184,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system design.
 ### Module Structure
 
 ```
-CharForgeX/
+ai-gen/
 ├── core/              # Configuration system
 ├── dataset/           # Dataset processing
 │   ├── cleaning.py
