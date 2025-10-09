@@ -1,0 +1,130 @@
+Last login: Mon Sep  8 11:21:21 on ttys003
+samueldukmedjian@MacBook-Air-de-Samuel ~ % curl -X POST https://api.runpod.ai/v2/nnrf4t6hxsb4sn/runsync \
+  -H "Authorization: Bearer rpa_6YIMADVCWS5WR4HK02J4355MCA30CKVKK92JPDN91fudrf" \
+  -H "Content-Type: application/json" \
+  -d '{"input": {"operation": "health_check"}}'
+{"id":"sync-d0fe8d7c-2536-4c77-94e2-c0b775b43b6c-e1","status":"IN_QUEUE"}
+samueldukmedjian@MacBook-Air-de-Samuel ~ % cd ~/CharForgex
+samueldukmedjian@MacBook-Air-de-Samuel CharForgex % nano .env
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  UW PICO 5.09                                                                                       File: .env                                                                                       Modified  
+
+# RunPod API key (get from RunPod dashboard)
+RUNPOD_API_KEY=your_runpod_api_key_here
+
+# HuggingFace (accept Flux.1-dev terms before use)
+HF_TOKEN=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
+HF_HOME=/workspace/.cache/huggingface
+
+# Optional integrations
+CIVITAI_API_KEY=68b35c5249f706b2fdf33a96314628ff
+GOOGLE_API_KEY=AIzaSyCkIlt1nCc5HDfKjrGvUHknmBj5PqdhTU8
+FAL_KEY=93813d30-be3e-4bad-a0b2-dfe3a16fbb9d:8edebabc3800e0d0a6b46909f18045c8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+^G Get Help                       ^O WriteOut                       ^R Read File                      ^Y Prev Pg                        ^K Cut Text                       ^C Cur Pos                        
+^X Exit                           ^J Justify                        ^W Where is                       ^V Next Pg                        ^U UnCut Text                     ^T To Spell                       

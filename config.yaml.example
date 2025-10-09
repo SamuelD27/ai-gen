@@ -1,0 +1,162 @@
+# CharForgeX Configuration
+# Copy this file to config.yaml and customize as needed
+
+# Project settings
+project_name: charforgex
+work_dir: ./workspace
+cache_dir: ./cache
+
+# NO CONTENT RESTRICTIONS - Full creative freedom
+enable_safety_checker: false
+enable_watermark: false
+enable_telemetry: false
+
+# Compute configuration
+compute:
+  mode: local  # local, cloud, or hybrid
+  device: cuda  # cuda, cpu, or mps (for Mac)
+  precision: bf16  # fp32, fp16, or bf16
+  use_xformers: true
+  use_torch_compile: false
+  max_memory_gb: null  # null for auto-detect
+
+# Cloud configuration (RunPod)
+cloud:
+  enabled: false
+  provider: runpod
+  api_key: null  # Set via RUNPOD_API_KEY env var
+  gpu_type: RTX4090
+  region: US-OR
+  max_cost_per_hour: 1.0
+  auto_shutdown_minutes: 30
+  storage_gb: 100
+  template_id: null
+
+# Dataset processing
+dataset:
+  # Cleaning
+  enable_face_detection: true
+  enable_deduplication: true
+  enable_quality_filter: true
+  min_resolution: 512
+  max_aspect_ratio: 2.0
+
+  # Preprocessing
+  target_resolution: 1024
+  center_crop: false
+  smart_crop: true  # Face-aware cropping
+
+  # Captioning
+  captioning_backend: blip2  # blip2, clip_interrogator, cogvlm, llava, ensemble
+  caption_prefix: ""
+  caption_suffix: ""
+  max_caption_length: 200
+
+  # Augmentation
+  enable_augmentation: false
+  flip_horizontal: true
+  color_jitter: false
+
+# LoRA training
+training:
+  # Model
+  model_backend: flux-dev  # flux-dev, flux-schnell, sdxl, sd3
+  base_model_path: null  # null to use default
+
+  # LoRA settings
+  lora_rank: 16
+  lora_alpha: 16
+  lora_dropout: 0.0
+
+  # Training hyperparameters
+  steps: 1000
+  batch_size: 1
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0001
+  lr_scheduler: constant
+  warmup_steps: 0
+
+  # Optimization
+  optimizer: adamw8bit
+  weight_decay: 0.01
+  gradient_checkpointing: true
+  mixed_precision: true
+
+  # Regularization
+  noise_offset: 0.0
+  min_snr_gamma: null
+
+  # Saving
+  save_every: 250
+  max_checkpoints: 5
+  output_dir: ./output/loras
+
+  # Advanced
+  train_text_encoder: false
+  cache_latents: true
+  resolution: 512
+
+# Image generation
+image_generation:
+  model_backend: flux-dev
+
+  # Generation parameters
+  width: 1024
+  height: 1024
+  num_inference_steps: 30
+  guidance_scale: 7.5
+
+  # LoRA
+  lora_path: null
+  lora_weight: 0.8
+
+  # Advanced features
+  use_controlnet: false
+  controlnet_type: null
+  controlnet_weight: 1.0
+
+  use_ipadapter: false
+  ipadapter_weight: 0.8
+
+  use_regional_prompting: false
+
+  # Post-processing
+  upscale: false
+  upscale_factor: 2.0
+  face_restoration: false
+
+  # Batch generation
+  batch_size: 1
+  output_dir: ./output/images
+
+# Video generation
+video_generation:
+  backend: animatediff  # animatediff, hotshotxl, svd
+
+  # Video parameters
+  width: 512
+  height: 512
+  num_frames: 16
+  fps: 8
+  num_inference_steps: 25
+  guidance_scale: 7.5
+
+  # LoRA
+  lora_path: null
+  lora_weight: 0.8
+
+  # Motion control
+  use_facial_motion: false
+  facial_motion_source: null
+
+  use_audio_sync: false
+  audio_path: null
+
+  # Temporal smoothing
+  use_interpolation: true
+  interpolation_method: rife  # rife, amt, raft
+  target_fps: 24
+
+  # Output
+  output_dir: ./output/videos
+  output_format: mp4  # mp4, gif, webm
