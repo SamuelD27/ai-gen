@@ -17,24 +17,17 @@ echo ""
 cd /workspace 2>/dev/null || cd ~
 
 # Determine if we need to clone or just pull
-if [ -d "CharForgex" ]; then
-    echo "📁 Found existing CharForgex directory"
-    cd CharForgex
+REPO_DIR="ai-gen"
+
+if [ -d "$REPO_DIR" ]; then
+    echo "📁 Found existing $REPO_DIR directory"
+    cd "$REPO_DIR"
     echo "📥 Pulling latest changes..."
     git pull || echo "⚠️  Could not pull (no git repo or no changes)"
 else
-    echo "📥 Cloning CharForgeX..."
-    # If you have a git repo, uncomment and update:
-    # git clone https://github.com/yourusername/CharForgeX.git
-    # cd CharForgeX
-
-    # For now, assume code is already present
-    if [ -d "CharForgex" ]; then
-        cd CharForgex
-    else
-        echo "❌ CharForgeX directory not found. Please upload your code first."
-        exit 1
-    fi
+    echo "📥 Cloning repository..."
+    git clone https://github.com/SamuelD27/ai-gen.git
+    cd "$REPO_DIR"
 fi
 
 echo ""
