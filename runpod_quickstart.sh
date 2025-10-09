@@ -16,6 +16,16 @@ echo ""
 # Navigate to workspace
 cd /workspace 2>/dev/null || cd ~
 
+# Install Node.js if not present (RunPod doesn't include it by default)
+if ! command -v node &> /dev/null; then
+    echo "📦 Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs
+    echo "✅ Node.js installed: $(node --version)"
+else
+    echo "✅ Node.js already installed: $(node --version)"
+fi
+
 # Determine if we need to clone or just pull
 REPO_DIR="ai-gen"
 
@@ -32,6 +42,35 @@ fi
 
 echo ""
 echo "🔧 Setting up environment..."
+
+# Create root .env if it doesn't exist
+if [ ! -f ".env" ]; then
+    echo "📝 Creating root .env file..."
+    cat > .env << 'ENVEOF'
+# CharForge Environment Variables
+# Your API Keys - Pre-configured
+
+# Hugging Face
+HF_TOKEN=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
+HF_HOME=/workspace/.cache/huggingface
+
+# CivitAI
+CIVITAI_API_KEY=68b35c5249f706b2fdf33a96314628ff
+
+# Google AI (for captioning)
+GOOGLE_API_KEY=AIzaSyCkIlt1nCc5HDfKjrGvUHknmBj5PqdhTU8
+
+# fal.ai
+FAL_KEY=93813d30-be3e-4bad-a0b2-dfe3a16fbb9d:8edebabc3800e0d0a6b46909f18045c8
+
+# RunPod (for cloud GPU)
+RUNPOD_API_KEY=rpa_6YIMADVCWS5WR4HK02J4355MCA30CKVKK92JPDN91fudrf
+
+# Application paths
+APP_PATH=/workspace/ai-gen
+ENVEOF
+    echo "✅ Created root .env with API keys"
+fi
 
 # Create/activate virtual environment
 if [ -d ".venv" ]; then
@@ -75,24 +114,24 @@ cd charforge-gui/backend
 if [ ! -f ".env" ]; then
     echo "📝 Creating backend .env file..."
 
-    # Copy from root .env if it exists
-    if [ -f "../../.env" ]; then
-        cp ../../.env .env
-        echo "✅ Copied API keys from root .env"
-    else
-        # Create basic .env
-        cat > .env << 'ENVEOF'
+    # Create .env with API keys
+    cat > .env << 'ENVEOF'
+# CharForge Environment Variables
 SECRET_KEY=change-this-in-production-$(openssl rand -hex 32)
 DATABASE_URL=sqlite:///./database.db
-HF_TOKEN=${HF_TOKEN}
+
+# API Keys
+HF_TOKEN=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
 HF_HOME=/workspace/.cache/huggingface
-CIVITAI_API_KEY=${CIVITAI_API_KEY}
-GOOGLE_API_KEY=${GOOGLE_API_KEY}
-FAL_KEY=${FAL_KEY}
-RUNPOD_API_KEY=${RUNPOD_API_KEY}
+CIVITAI_API_KEY=68b35c5249f706b2fdf33a96314628ff
+GOOGLE_API_KEY=AIzaSyCkIlt1nCc5HDfKjrGvUHknmBj5PqdhTU8
+FAL_KEY=93813d30-be3e-4bad-a0b2-dfe3a16fbb9d:8edebabc3800e0d0a6b46909f18045c8
+RUNPOD_API_KEY=rpa_6YIMADVCWS5WR4HK02J4355MCA30CKVKK92JPDN91fudrf
+
+# Application paths
+APP_PATH=/workspace/ai-gen
 ENVEOF
-        echo "⚠️  Created basic .env - please add your API keys!"
-    fi
+    echo "✅ Created backend .env with API keys"
 fi
 
 # Install GUI dependencies
