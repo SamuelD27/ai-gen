@@ -165,9 +165,9 @@ echo ""
 echo "🚀 Starting CharForge GUI..."
 echo ""
 
-# Get IP address for remote access
-RUNPOD_POD_ID=$(hostname | cut -d'-' -f1)
-RUNPOD_PUBLIC_IP=$(curl -s https://ipinfo.io/ip 2>/dev/null || echo "unknown")
+# Detect RunPod environment
+RUNPOD_POD_ID=${RUNPOD_POD_ID:-}
+RUNPOD_PUBLIC_IP=$(curl -s https://ipinfo.io/ip 2>/dev/null || echo "")
 
 # Launch GUI
 cd charforge-gui
@@ -175,30 +175,53 @@ cd charforge-gui
 # Make start script executable
 chmod +x start-dev.sh
 
-# Start the GUI
+# Start the GUI in background
+echo "🚀 Starting backend and frontend..."
 bash start-dev.sh &
+GUI_PID=$!
 
 # Wait for services to start
-sleep 5
+echo "⏳ Waiting for services to initialize..."
+sleep 10
 
 echo ""
 echo "================================"
 echo "🎉 CharForge is Running!"
 echo "================================"
 echo ""
-echo "📱 Access URLs:"
-echo "   Local:  http://localhost:5173"
-echo "   Public: http://${RUNPOD_PUBLIC_IP}:5173"
+
+if [ -n "$RUNPOD_POD_ID" ]; then
+    # Try to construct RunPod proxy URLs
+    POD_HOST=$(hostname)
+    echo "📱 RunPod Access URLs:"
+    echo ""
+    echo "   🌐 Frontend (Main GUI):"
+    echo "      https://${POD_HOST}-5173.proxy.runpod.net"
+    echo ""
+    echo "   🔧 Backend (API Docs):"
+    echo "      https://${POD_HOST}-8000.proxy.runpod.net/docs"
+    echo ""
+    echo "   💡 If the above URLs don't work:"
+    echo "      1. Go to your RunPod dashboard"
+    echo "      2. Click the 'Connect' button on your pod"
+    echo "      3. Look for 'HTTP Service [Port 5173]' or 'HTTP Service [Port 8000]'"
+    echo "      4. Click on those links to access the GUI"
+    echo ""
+    echo "   📖 See RUNPOD_ACCESS.md for detailed access instructions"
+else
+    echo "📱 Local Access:"
+    echo "   Frontend: http://localhost:5173"
+    echo "   Backend:  http://localhost:8000"
+    echo "   API Docs: http://localhost:8000/docs"
+    if [ -n "$RUNPOD_PUBLIC_IP" ]; then
+        echo ""
+        echo "   Public:   http://${RUNPOD_PUBLIC_IP}:5173"
+    fi
+fi
+
 echo ""
-echo "🔧 API Documentation:"
-echo "   http://localhost:8000/docs"
-echo ""
-echo "💡 RunPod Connection:"
-echo "   Use RunPod's 'Connect' button to access via HTTP"
-echo "   Or use port forwarding for direct access"
-echo ""
-echo "🛑 To stop: Press Ctrl+C or close this terminal"
+echo "🛑 To stop: Press Ctrl+C"
 echo ""
 
 # Keep script running
-wait
+wait $GUI_PID
