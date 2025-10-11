@@ -1,39 +1,12 @@
 import axios, { AxiosInstance } from 'axios'
 
-// Create axios instance
+// Create axios instance (no authentication required)
 const api: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: 30000,
 })
 
-// Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('auth_token')
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
-)
-
 // Types
-export interface LoginResponse {
-  access_token: string
-  token_type: string
-}
-
 export interface User {
   id: number
   username: string
@@ -86,20 +59,7 @@ export interface MediaFile {
   height?: number
 }
 
-// Auth API
-export const authApi = {
-  login: (credentials: { username: string; password: string }): Promise<LoginResponse> =>
-    api.post('/auth/login', new URLSearchParams(credentials)).then(res => res.data),
-  
-  register: (data: { username: string; email: string; password: string }): Promise<User> =>
-    api.post('/auth/register', data).then(res => res.data),
-  
-  getMe: (): Promise<User> =>
-    api.get('/auth/me').then(res => res.data),
-  
-  verifyToken: (): Promise<{ valid: boolean; user: string }> =>
-    api.get('/auth/verify').then(res => res.data),
-}
+// No auth API needed - authentication is disabled
 
 // Characters API
 export const charactersApi = {

@@ -36,37 +36,8 @@
           </div>
           
           <div class="flex items-center space-x-4">
-            <!-- User menu (only show when auth is enabled) -->
-            <div v-if="authStore.authEnabled" class="relative">
-              <Button @click="showUserMenu = !showUserMenu" variant="ghost" size="sm">
-                <User class="h-4 w-4 mr-2" />
-                {{ authStore.user?.username }}
-              </Button>
-
-              <div
-                v-if="showUserMenu"
-                class="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md shadow-lg z-50"
-              >
-                <div class="py-1">
-                  <router-link
-                    to="/settings"
-                    class="block px-4 py-2 text-sm hover:bg-accent"
-                    @click="showUserMenu = false"
-                  >
-                    Settings
-                  </router-link>
-                  <button
-                    @click="authStore.logout()"
-                    class="block w-full text-left px-4 py-2 text-sm hover:bg-accent"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Show simple user indicator when auth is disabled -->
-            <div v-else class="flex items-center text-sm text-muted-foreground">
+            <!-- Simple user indicator (no authentication) -->
+            <div class="flex items-center text-sm text-muted-foreground">
               <User class="h-4 w-4 mr-2" />
               CharForge User
             </div>
@@ -83,9 +54,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import {
   LayoutDashboard,
   Users,
@@ -97,11 +67,8 @@ import {
   Settings,
   User
 } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
 
 const route = useRoute()
-const authStore = useAuthStore()
-const showUserMenu = ref(false)
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, tourId: 'dashboard-link' },
