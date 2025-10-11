@@ -1,24 +1,20 @@
-# CharForge - AI-Powered Character LoRA Creation
-
-> **✨ RECENTLY UPDATED:** API keys configured, safety filters disabled by default, one-command RunPod setup!
-> **📖 See [QUICK_START.md](QUICK_START.md) for the new quick start guide**
-> **📋 See [CHANGES.md](CHANGES.md) for full list of changes**
+# ai-gen - LoRA Training & Ultra-Realistic Generation
 
 <div align="center">
 
-**No content restrictions. Maximum creative freedom. Production-ready.**
-
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/ai_gen_colab.ipynb)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/pytorch-2.1+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+**No content restrictions. Maximum creative freedom. Production-ready.**
+
 *Train photorealistic LoRAs and generate ultra-realistic images/videos with state-of-the-art AI models*
 
-[Quick Start](#quick-start) •
-[Features](#features) •
-[Installation](#installation) •
-[Documentation](#documentation) •
-[Examples](#examples)
+[🚀 Colab (Recommended)](#-google-colab-recommended) •
+[💻 Local Install](#-local-installation) •
+[📖 Features](#features) •
+[📚 Documentation](#documentation)
 
 </div>
 
@@ -28,10 +24,10 @@
 
 **ai-gen has NO CONTENT RESTRICTIONS by default.**
 
-- No safety filters
-- No content moderation
-- No telemetry or tracking
-- No watermarks
+- ✅ No safety filters
+- ✅ No content moderation
+- ✅ No telemetry or tracking
+- ✅ No watermarks
 
 **You have complete creative freedom and full control.**
 
@@ -39,9 +35,31 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Google Colab (Recommended)
 
-### Installation (5 minutes)
+**The easiest way to get started - just click and run!**
+
+### One-Click Setup
+
+1. **Click here**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/ai_gen_colab.ipynb)
+2. **Enable GPU**: Runtime → Change runtime type → T4 GPU
+3. **Run all cells**: Runtime → Run all
+4. **Get your URL**: After ~10 minutes, you'll see your ngrok URL
+5. **Start creating**: Access the web GUI and start training!
+
+### Why Colab?
+
+- ✅ **Free GPU** - T4 GPU included (or upgrade to A100 with Pro)
+- ✅ **Zero setup** - No installation, dependencies, or configuration
+- ✅ **Public access** - Automatic ngrok tunnel with URL
+- ✅ **Works anywhere** - Just need a browser
+- ✅ **Pre-configured** - All API keys already set up
+
+**→ [See full Colab guide](COLAB_QUICKSTART.md)**
+
+---
+
+## 💻 Local Installation
 
 ```bash
 # Clone and enter directory
