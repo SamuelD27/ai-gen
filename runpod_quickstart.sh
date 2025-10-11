@@ -38,6 +38,11 @@ else
     echo "✅ ngrok already installed"
 fi
 
+# Configure ngrok with authtoken
+echo "🔑 Configuring ngrok..."
+ngrok config add-authtoken 33u4PSfJRAAdkBVl0lmMTo7LebK_815Q5PcJK6h68hM5PUAyM > /dev/null 2>&1
+echo "✅ ngrok configured"
+
 # Determine if we need to clone or just pull
 REPO_DIR="ai-gen"
 
@@ -202,15 +207,25 @@ ngrok http 5173 --log=stdout > /tmp/ngrok.log 2>&1 &
 NGROK_PID=$!
 
 # Wait for ngrok to initialize
-sleep 5
+echo "⏳ Waiting for ngrok to start..."
+sleep 8
 
-# Get ngrok URL
+# Get ngrok URL with better detection
 NGROK_URL=""
-for i in {1..10}; do
-    NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | grep -o 'https://[^"]*\.ngrok-free\.app' | head -1)
+for i in {1..15}; do
+    # Try multiple methods to get the URL
+    NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | python3 -c "import sys, json; data = json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data.get('tunnels') else '')" 2>/dev/null)
+
+    # Fallback to grep method
+    if [ -z "$NGROK_URL" ]; then
+        NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | grep -oP '"public_url":"https://[^"]*"' | grep -oP 'https://[^"]*' | head -1)
+    fi
+
     if [ -n "$NGROK_URL" ]; then
+        echo "✅ ngrok tunnel established"
         break
     fi
+    echo "   Attempt $i/15..."
     sleep 2
 done
 
@@ -229,17 +244,25 @@ if [ -n "$NGROK_URL" ]; then
     echo "   💡 The first time you visit, click 'Visit Site' on the ngrok page"
     echo ""
 else
-    echo "⚠️  Could not get ngrok URL. Trying local access..."
+    echo "⚠️  Could not auto-detect ngrok URL"
+    echo ""
+    echo "📱 Manual ngrok access:"
+    echo "   1. Visit http://localhost:4040 in your browser"
+    echo "   2. Look for the tunnel URL (should be https://XXXXX.ngrok-free.app)"
+    echo "   3. Copy and use that URL to access your GUI"
+    echo ""
+    echo "   Or check the ngrok log:"
+    echo "   cat /tmp/ngrok.log | grep 'url='"
     echo ""
     echo "📱 Local Access:"
     echo "   Frontend: http://localhost:5173"
     echo "   Backend:  http://localhost:8000"
     echo "   API Docs: http://localhost:8000/docs"
-    echo ""
-    echo "💡 Try visiting http://localhost:4040 to see ngrok dashboard"
 fi
 
+echo ""
 echo "🔧 Backend API (Local): http://localhost:8000/docs"
+echo "🔧 ngrok Dashboard: http://localhost:4040"
 echo ""
 echo "🛑 To stop: Press Ctrl+C"
 echo ""
