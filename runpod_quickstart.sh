@@ -137,6 +137,10 @@ if [ ! -f ".env" ]; then
 SECRET_KEY=change-this-in-production-$(openssl rand -hex 32)
 DATABASE_URL=sqlite:///./database.db
 
+# Authentication (disabled for easy access)
+ENABLE_AUTH=false
+ALLOW_REGISTRATION=false
+
 # API Keys
 HF_TOKEN=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
 HF_HOME=/workspace/.cache/huggingface
