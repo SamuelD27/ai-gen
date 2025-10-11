@@ -174,18 +174,40 @@ def main():
         )
 
     print("⏳ Waiting for frontend to start...")
-    time.sleep(15)
 
-    # Check if frontend is running
+    # Monitor frontend startup
+    for i in range(30):  # Wait up to 30 seconds
+        time.sleep(1)
+
+        # Check if process died
+        if frontend_process.poll() is not None:
+            print(f"❌ Frontend process died! Exit code: {frontend_process.returncode}")
+            print("📋 Last 30 lines of frontend log:")
+            run_command("tail -30 /tmp/frontend.log", "")
+            break
+
+        # Check if port is listening
+        port_check = subprocess.run(['nc', '-z', 'localhost', '5173'],
+                                   capture_output=True)
+        if port_check.returncode == 0:
+            print(f"✅ Frontend is listening on port 5173! (after {i+1}s)")
+            break
+
+        if i % 5 == 0:
+            print(f"   Still waiting... ({i+1}s)")
+
+    # Final health check
     print("🔍 Checking if services are up...")
     try:
         import requests
         resp = requests.get('http://localhost:5173', timeout=2)
-        print("✅ Frontend is running!")
+        print("✅ Frontend HTTP check passed!")
     except Exception as e:
         print(f"⚠️  Frontend check failed: {e}")
-        print("📋 Checking logs...")
-        run_command("tail -20 /tmp/frontend.log", "")
+        print("📋 Checking process status...")
+        run_command("ps aux | grep -E 'vite|npm'", "")
+        print("📋 Last 30 lines of logs:")
+        run_command("tail -30 /tmp/frontend.log", "")
         run_command("tail -20 /tmp/backend.log", "")
 
     # Create ngrok tunnel
