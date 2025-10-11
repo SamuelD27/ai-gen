@@ -99,6 +99,8 @@ def main():
         f.write("# Backend Environment Variables\n")
         f.write("SECRET_KEY=colab-secret-key-change-in-production\n")
         f.write("DATABASE_URL=sqlite:///./database.db\n")
+        f.write("ENABLE_AUTH=false\n")
+        f.write("ALLOW_REGISTRATION=false\n")
         for key, value in env_vars.items():
             f.write(f"{key}={value}\n")
 
