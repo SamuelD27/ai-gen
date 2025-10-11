@@ -305,7 +305,18 @@ const uploadFiles = async (files: File[]) => {
 
     } catch (error: any) {
       uploadQueue.value = uploadQueue.value.filter(item => item.id !== uploadItem.id)
-      toast.error(`Failed to upload ${file.name}`)
+
+      // Show detailed error message
+      let errorMsg = `Failed to upload ${file.name}`
+      if (error.response?.data?.detail) {
+        errorMsg += `: ${error.response.data.detail}`
+      } else if (error.message) {
+        errorMsg += `: ${error.message}`
+      }
+
+      console.error('Upload error:', error)
+      console.error('Error response:', error.response)
+      toast.error(errorMsg)
     }
   }
 }
