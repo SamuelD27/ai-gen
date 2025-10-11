@@ -191,12 +191,18 @@ def main():
             run_command("tail -30 /tmp/frontend.log", "")
             break
 
-        # Check if port is listening
-        port_check = subprocess.run(['nc', '-z', 'localhost', '5173'],
-                                   capture_output=True)
-        if port_check.returncode == 0:
-            print(f"✅ Frontend is listening on port 5173! (after {i+1}s)")
-            break
+        # Check if port is listening using Python socket
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex(('localhost', 5173))
+            sock.close()
+            if result == 0:
+                print(f"✅ Frontend is listening on port 5173! (after {i+1}s)")
+                break
+        except Exception as e:
+            pass  # Port not ready yet
 
         if i % 5 == 0:
             print(f"   Still waiting... ({i+1}s)")
