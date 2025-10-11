@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     # CharForge Integration
     CHARFORGE_ROOT: Path = BASE_DIR.parent  # Points to the main CharForge directory
     CHARFORGE_SCRATCH_DIR: Path = CHARFORGE_ROOT / "scratch"
-    
+    COMFYUI_PATH: str = str(BASE_DIR / "ComfyUI")  # Default ComfyUI path
+
     # Environment Variables for CharForge
     HF_TOKEN: str = ""
     HF_HOME: str = ""
