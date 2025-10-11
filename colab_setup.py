@@ -87,8 +87,14 @@ def main():
     # Install frontend dependencies now
     print("\n📦 Installing frontend dependencies...\n")
     os.chdir("/content/ai-gen/charforge-gui/frontend")
-    if not os.path.exists("node_modules"):
-        run_command("npm install", "Installing Node modules")
+
+    # Clean install to fix rollup native module issue
+    if os.path.exists("node_modules"):
+        print("Cleaning old node_modules...")
+        run_command("rm -rf node_modules package-lock.json", "")
+
+    print("Installing Node modules (this may take 3-4 minutes)...")
+    run_command("npm install --legacy-peer-deps", "Installing Node modules")
     print("✅ Frontend dependencies installed!\n")
 
     # Step 5: Setup environment variables
@@ -99,8 +105,7 @@ def main():
         'HF_HOME': '/content/.cache/huggingface',
         'CIVITAI_API_KEY': '68b35c5249f706b2fdf33a96314628ff',
         'GOOGLE_API_KEY': 'AIzaSyCkIlt1nCc5HDfKjrGvUHknmBj5PqdhTU8',
-        'FAL_KEY': '93813d30-be3e-4bad-a0b2-dfe3a16fbb9d:8edebabc3800e0d0a6b46909f18045c8',
-        'APP_PATH': '/content/ai-gen'
+        'FAL_KEY': '93813d30-be3e-4bad-a0b2-dfe3a16fbb9d:8edebabc3800e0d0a6b46909f18045c8'
     }
 
     for key, value in env_vars.items():
