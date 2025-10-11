@@ -104,14 +104,8 @@ def main():
 
     print("✅ API keys configured!\n")
 
-    # Step 5: Download models
-    print("🤖 Downloading models...")
-    print("⏳ This may take 10-15 minutes on first run...\n")
-
-    if run_command("cd /content/ai-gen && python install.py", "Downloading models"):
-        print("\n✅ Models downloaded!\n")
-    else:
-        print("\n⚠️  Model download had issues, but continuing...\n")
+    # Step 5: Skip model downloads (will download on-demand)
+    print("✅ Skipping model pre-download (models will be downloaded automatically when needed)\n")
 
     # Step 6: Setup ngrok
     print("🌐 Setting up ngrok tunnel...\n")

@@ -29,19 +29,22 @@ def pip_install(platform, cmd):
         return f"{cmd} --cache-dir {os.environ['PIP_CACHE_DIR']}"
 
 
-def run_cmd(command):
+def run_cmd(command, critical=True):
     """Run a shell command"""
     print(f"🔄 Running: {command}")
     exit_code = os.system(command)
     if exit_code != 0:
         print(f"❌ Command failed: {command} (Exit Code: {exit_code})")
-        exit(1)
+        if critical:
+            exit(1)
+        else:
+            print("⚠️  Continuing anyway...")
 
 
 def install_dependencies():
     """Install system dependencies and Python packages."""
     print("📦 Installing dependencies...")
-    run_cmd("sudo apt-get update && sudo apt-get install -y git wget curl libgl1-mesa-glx libglib2.0-0 tmux emacs git-lfs")
+    run_cmd("sudo apt-get update && sudo apt-get install -y git wget curl libgl1-mesa-glx libglib2.0-0 tmux emacs git-lfs", critical=False)
     print("✅ Dependencies installed.")
 
 

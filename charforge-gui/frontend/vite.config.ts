@@ -14,6 +14,10 @@ export default defineConfig({
     host: '0.0.0.0', // Allow external connections
     port: 5173,
     strictPort: true,
+    allowedHosts: true, // Allow all hosts (for ngrok/Colab)
+    hmr: {
+      clientPort: 5173,
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:8000',
