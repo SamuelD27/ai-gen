@@ -30,7 +30,12 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(null)
   const isLoading = ref(false)
-  const authEnabled = ref<boolean>(true) // Will be set based on backend config
+  // Check localStorage first, default to true if not set
+  const authEnabled = ref<boolean>(
+    localStorage.getItem('auth_enabled') !== null
+      ? localStorage.getItem('auth_enabled') === 'true'
+      : true
+  )
 
   // Getters
   const isAuthenticated = computed(() => {
@@ -48,6 +53,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.ok) {
         const config = await response.json()
         authEnabled.value = config.auth_enabled
+        // Persist to localStorage to prevent login redirect on reload
+        localStorage.setItem('auth_enabled', String(config.auth_enabled))
 
         // Set a default user when auth is disabled
         if (!config.auth_enabled) {
@@ -61,6 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
       } else if (response.status === 404) {
         // Config endpoint doesn't exist, assume auth is disabled
         authEnabled.value = false
+        localStorage.setItem('auth_enabled', 'false')
         user.value = {
           id: 1,
           username: 'default_user',
@@ -70,11 +78,13 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         // Server error, assume auth is enabled for safety
         authEnabled.value = true
+        localStorage.setItem('auth_enabled', 'true')
       }
     } catch (error) {
       // Network error, assume auth is enabled for safety
       console.warn('Failed to check auth config, assuming auth is enabled:', error)
       authEnabled.value = true
+      localStorage.setItem('auth_enabled', 'true')
     }
   }
 
