@@ -61,7 +61,7 @@ async def generate_images(
     request: InferenceRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     """Generate images using a trained character LoRA."""
     

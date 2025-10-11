@@ -10,7 +10,7 @@ def _parse_bool_env(var_name: str, default: str = "false") -> bool:
 
 class Settings(BaseSettings):
     # API Configuration
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production-min-32-chars")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     ALLOW_REGISTRATION: bool = _parse_bool_env("ALLOW_REGISTRATION", "false")
     DEFAULT_USER_ID: int = int(os.getenv("DEFAULT_USER_ID", "1"))  # Used when auth is disabled
 
-    def __post_init__(self):
+    def model_post_init(self, __context):
         """Validate critical settings after initialization."""
         if not self.SECRET_KEY or len(self.SECRET_KEY) < 32:
             import secrets
@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
         # Ensure media directory exists and is secure
         self.MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+        self.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        self.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
         # Set secure permissions on media directory (Unix only)
         try:

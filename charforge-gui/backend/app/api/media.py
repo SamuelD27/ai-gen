@@ -293,7 +293,7 @@ async def get_file(
 @router.delete("/files/{filename}")
 async def delete_file(
     filename: str,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     """Delete a file."""
 
@@ -346,7 +346,7 @@ async def process_image(
     x: Optional[int] = Form(None),
     y: Optional[int] = Form(None),
     format: Optional[str] = Form(None),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     """Process an image (resize, crop, convert format)."""
     
