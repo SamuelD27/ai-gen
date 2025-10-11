@@ -123,14 +123,26 @@ def main():
 
     os.chdir('/content/ai-gen/charforge-gui')
 
-    # Start backend
+    # Start backend in background with nohup
     print("🔧 Starting backend...")
-    backend_process = subprocess.Popen(
-        ['uvicorn', 'backend.app.main:app', '--host', '0.0.0.0', '--port', '8000'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
+    os.chdir('/content/ai-gen/charforge-gui/backend')
+    with open('/tmp/backend.log', 'w') as log:
+        backend_process = subprocess.Popen(
+            ['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000'],
+            stdout=log,
+            stderr=subprocess.STDOUT
+        )
+
+    print("⏳ Waiting for backend to start...")
     time.sleep(5)
+
+    # Check if backend is running
+    try:
+        import requests
+        resp = requests.get('http://localhost:8000/health', timeout=2)
+        print("✅ Backend is running!")
+    except:
+        print("⚠️  Backend might not be ready yet, continuing...")
 
     # Install frontend dependencies
     os.chdir('/content/ai-gen/charforge-gui/frontend')
@@ -138,16 +150,30 @@ def main():
         print("📦 Installing frontend dependencies (this may take a few minutes)...")
         run_command("npm install", "Installing Node modules")
 
-    # Start frontend
+    # Start frontend in background
     print("🎨 Starting frontend...")
-    frontend_process = subprocess.Popen(
-        ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '5173'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
+    with open('/tmp/frontend.log', 'w') as log:
+        frontend_process = subprocess.Popen(
+            ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '5173'],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            cwd='/content/ai-gen/charforge-gui/frontend'
+        )
 
-    print("⏳ Waiting for services to initialize...")
-    time.sleep(10)
+    print("⏳ Waiting for frontend to start...")
+    time.sleep(15)
+
+    # Check if frontend is running
+    print("🔍 Checking if services are up...")
+    try:
+        import requests
+        resp = requests.get('http://localhost:5173', timeout=2)
+        print("✅ Frontend is running!")
+    except Exception as e:
+        print(f"⚠️  Frontend check failed: {e}")
+        print("📋 Checking logs...")
+        run_command("tail -20 /tmp/frontend.log", "")
+        run_command("tail -20 /tmp/backend.log", "")
 
     # Create ngrok tunnel
     print("🌐 Creating public tunnel...\n")
