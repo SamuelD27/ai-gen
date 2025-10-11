@@ -99,14 +99,16 @@ def validate_file_upload(file_content: bytes, filename: str, max_size: int = 50 
         b'\x47\x49\x46\x38',  # GIF
         b'\x52\x49\x46\x46',  # WebP (RIFF)
         b'\x42\x4D',  # BMP
+        b'\x49\x49\x2A\x00',  # TIFF (little-endian)
+        b'\x4D\x4D\x00\x2A',  # TIFF (big-endian)
     ]
 
     is_valid_image = any(file_content.startswith(sig) for sig in valid_image_signatures)
     if not is_valid_image:
         return False
 
-    # Additional filename validation
-    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
+    # Additional filename validation (match media.py allowed extensions)
+    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.tif']
     file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
     if f'.{file_ext}' not in allowed_extensions:
         return False
