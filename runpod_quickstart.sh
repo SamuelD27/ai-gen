@@ -26,6 +26,18 @@ else
     echo "✅ Node.js already installed: $(node --version)"
 fi
 
+# Install ngrok for tunneling (better than RunPod proxy)
+if ! command -v ngrok &> /dev/null; then
+    echo "📦 Installing ngrok for public access..."
+    wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+    tar xzf ngrok-v3-stable-linux-amd64.tgz
+    mv ngrok /usr/local/bin/
+    rm ngrok-v3-stable-linux-amd64.tgz
+    echo "✅ ngrok installed"
+else
+    echo "✅ ngrok already installed"
+fi
+
 # Determine if we need to clone or just pull
 REPO_DIR="ai-gen"
 
@@ -177,12 +189,30 @@ chmod +x start-dev.sh
 
 # Start the GUI in background
 echo "🚀 Starting backend and frontend..."
-bash start-dev.sh &
+bash start-dev.sh > /tmp/charforge-gui.log 2>&1 &
 GUI_PID=$!
 
 # Wait for services to start
 echo "⏳ Waiting for services to initialize..."
 sleep 10
+
+# Start ngrok tunnel for frontend (port 5173)
+echo "🌐 Starting ngrok tunnel..."
+ngrok http 5173 --log=stdout > /tmp/ngrok.log 2>&1 &
+NGROK_PID=$!
+
+# Wait for ngrok to initialize
+sleep 5
+
+# Get ngrok URL
+NGROK_URL=""
+for i in {1..10}; do
+    NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | grep -o 'https://[^"]*\.ngrok-free\.app' | head -1)
+    if [ -n "$NGROK_URL" ]; then
+        break
+    fi
+    sleep 2
+done
 
 echo ""
 echo "================================"
@@ -190,38 +220,41 @@ echo "🎉 CharForge is Running!"
 echo "================================"
 echo ""
 
-if [ -n "$RUNPOD_POD_ID" ]; then
-    # Try to construct RunPod proxy URLs
-    POD_HOST=$(hostname)
-    echo "📱 RunPod Access URLs:"
+if [ -n "$NGROK_URL" ]; then
+    echo "📱 Public Access URL (via ngrok):"
     echo ""
-    echo "   🌐 Frontend (Main GUI):"
-    echo "      https://${POD_HOST}-5173.proxy.runpod.net"
+    echo "   🌐 Main GUI: $NGROK_URL"
     echo ""
-    echo "   🔧 Backend (API Docs):"
-    echo "      https://${POD_HOST}-8000.proxy.runpod.net/docs"
+    echo "   💡 Click the link above to access your CharForge GUI"
+    echo "   💡 The first time you visit, click 'Visit Site' on the ngrok page"
     echo ""
-    echo "   💡 If the above URLs don't work:"
-    echo "      1. Go to your RunPod dashboard"
-    echo "      2. Click the 'Connect' button on your pod"
-    echo "      3. Look for 'HTTP Service [Port 5173]' or 'HTTP Service [Port 8000]'"
-    echo "      4. Click on those links to access the GUI"
-    echo ""
-    echo "   📖 See RUNPOD_ACCESS.md for detailed access instructions"
 else
+    echo "⚠️  Could not get ngrok URL. Trying local access..."
+    echo ""
     echo "📱 Local Access:"
     echo "   Frontend: http://localhost:5173"
     echo "   Backend:  http://localhost:8000"
     echo "   API Docs: http://localhost:8000/docs"
-    if [ -n "$RUNPOD_PUBLIC_IP" ]; then
-        echo ""
-        echo "   Public:   http://${RUNPOD_PUBLIC_IP}:5173"
-    fi
+    echo ""
+    echo "💡 Try visiting http://localhost:4040 to see ngrok dashboard"
 fi
 
+echo "🔧 Backend API (Local): http://localhost:8000/docs"
 echo ""
 echo "🛑 To stop: Press Ctrl+C"
 echo ""
 
+# Cleanup function
+cleanup() {
+    echo ""
+    echo "🛑 Stopping services..."
+    kill $GUI_PID 2>/dev/null
+    kill $NGROK_PID 2>/dev/null
+    echo "✅ Services stopped"
+    exit 0
+}
+
+trap cleanup INT TERM
+
 # Keep script running
-wait $GUI_PID
+wait
