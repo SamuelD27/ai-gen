@@ -65,7 +65,18 @@ def main():
     os.chdir('/content/ai-gen')
     print("✅ Repository ready!\n")
 
-    # Step 3: Install dependencies
+    # Step 3: Install Node.js (required for frontend)
+    print("📦 Installing Node.js...\n")
+    node_installed = run_command("which node", "")
+    if not node_installed:
+        print("Installing Node.js 20.x...")
+        run_command("curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -", "")
+        run_command("sudo apt-get install -y nodejs", "")
+        print("✅ Node.js installed!")
+    else:
+        print("✅ Node.js already installed!")
+    print("")
+    # Step 4: Install Python dependencies
     print("📦 Installing Python dependencies (this may take a few minutes)...\n")
     run_command("pip install -q -r requirements.txt", "Installing main requirements")
     run_command("pip install -q -r charforge-gui/backend/requirements.txt",
@@ -73,7 +84,14 @@ def main():
     run_command("pip install -q pyngrok", "Installing ngrok")
     print("\n✅ Dependencies installed!\n")
 
-    # Step 4: Setup environment variables
+    # Install frontend dependencies now
+    print("\n📦 Installing frontend dependencies...\n")
+    os.chdir("/content/ai-gen/charforge-gui/frontend")
+    if not os.path.exists("node_modules"):
+        run_command("npm install", "Installing Node modules")
+    print("✅ Frontend dependencies installed!\n")
+
+    # Step 5: Setup environment variables
     print("🔑 Configuring API keys...\n")
 
     env_vars = {
@@ -106,10 +124,10 @@ def main():
 
     print("✅ API keys configured!\n")
 
-    # Step 5: Skip model downloads (will download on-demand)
+    # Step 6: Skip model downloads (will download on-demand)
     print("✅ Skipping model pre-download (models will be downloaded automatically when needed)\n")
 
-    # Step 6: Setup ngrok
+    # Step 7: Setup ngrok
     print("🌐 Setting up ngrok tunnel...\n")
     run_command("pip install -q pyngrok", "Installing pyngrok")
 
@@ -118,7 +136,7 @@ def main():
     ngrok.set_auth_token("33u4PSfJRAAdkBVl0lmMTo7LebK_815Q5PcJK6h68hM5PUAyM")
     print("✅ ngrok configured!\n")
 
-    # Step 7: Start services
+    # Step 8: Start services
     print("🚀 Starting ai-gen GUI...\n")
 
     os.chdir('/content/ai-gen/charforge-gui')
@@ -144,11 +162,6 @@ def main():
     except:
         print("⚠️  Backend might not be ready yet, continuing...")
 
-    # Install frontend dependencies
-    os.chdir('/content/ai-gen/charforge-gui/frontend')
-    if not os.path.exists('node_modules'):
-        print("📦 Installing frontend dependencies (this may take a few minutes)...")
-        run_command("npm install", "Installing Node modules")
 
     # Start frontend in background
     print("🎨 Starting frontend...")
