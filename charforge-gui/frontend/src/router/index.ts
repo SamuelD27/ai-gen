@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -9,76 +8,54 @@ const router = createRouter({
       redirect: '/dashboard'
     },
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/views/auth/LoginView.vue'),
-      meta: { requiresGuest: true }
-    },
-    {
-      path: '/register',
-      name: 'Register', 
-      component: () => import('@/views/auth/RegisterView.vue'),
-      meta: { requiresGuest: true }
-    },
-    {
       path: '/dashboard',
       name: 'Dashboard',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/DashboardView.vue')
     },
     {
       path: '/characters',
       name: 'Characters',
-      component: () => import('@/views/CharactersView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/CharactersView.vue')
     },
     {
       path: '/characters/create',
       name: 'CreateCharacter',
-      component: () => import('@/views/CreateCharacterView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/CreateCharacterView.vue')
     },
     {
       path: '/characters/:id',
       name: 'CharacterDetail',
-      component: () => import('@/views/CharacterDetailView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/CharacterDetailView.vue')
     },
     {
       path: '/training',
       name: 'Training',
-      component: () => import('@/views/TrainingView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/TrainingView.vue')
     },
     {
       path: '/inference',
       name: 'Inference',
-      component: () => import('@/views/InferenceView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/InferenceView.vue')
     },
     {
       path: '/gallery',
       name: 'Gallery',
-      component: () => import('@/views/GalleryView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/GalleryView.vue')
     },
     {
       path: '/media',
       name: 'Media',
-      component: () => import('@/views/MediaView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/MediaView.vue')
     },
     {
       path: '/datasets',
       name: 'Datasets',
-      component: () => import('@/views/DatasetsView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/DatasetsView.vue')
     },
     {
       path: '/settings',
       name: 'Settings',
-      component: () => import('@/views/SettingsView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/SettingsView.vue')
     },
     {
       path: '/:pathMatch(.*)*',
@@ -88,34 +65,5 @@ const router = createRouter({
   ]
 })
 
-// Navigation guards
-router.beforeEach(async (to, from, next) => {
-  const authStore = useAuthStore()
-
-  // Initialize auth if not already done
-  if (!authStore.user && !authStore.isLoading) {
-    await authStore.initializeAuth()
-  }
-
-  // If auth is disabled, allow all routes
-  if (!authStore.authEnabled) {
-    // Skip login/register routes when auth is disabled
-    if (to.path === '/login' || to.path === '/register') {
-      next('/')
-      return
-    }
-    next()
-    return
-  }
-
-  // Check if route requires authentication (when auth is enabled)
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
-  }
-})
-
+// No authentication required - all routes are accessible
 export default router
