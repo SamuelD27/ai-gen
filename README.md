@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/ai_gen_colab.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/AI_GEN_COLAB.ipynb)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/pytorch-2.1+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -41,7 +41,7 @@
 
 ### One-Click Setup
 
-1. **Click here**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/ai_gen_colab.ipynb)
+1. **Click here**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SamuelD27/ai-gen/blob/main/AI_GEN_COLAB.ipynb)
 2. **Enable GPU**: Runtime → Change runtime type → T4 GPU
 3. **Run all cells**: Runtime → Run all
 4. **Get your URL**: After ~10 minutes, you'll see your ngrok URL
