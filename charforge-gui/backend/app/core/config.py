@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator, model_validator
 from typing import List
 import os
 from pathlib import Path
@@ -18,29 +19,6 @@ class Settings(BaseSettings):
     ENABLE_AUTH: bool = _parse_bool_env("ENABLE_AUTH", "false")
     ALLOW_REGISTRATION: bool = _parse_bool_env("ALLOW_REGISTRATION", "false")
     DEFAULT_USER_ID: int = int(os.getenv("DEFAULT_USER_ID", "1"))  # Used when auth is disabled
-
-    def model_post_init(self, __context):
-        """Validate critical settings after initialization."""
-        if not self.SECRET_KEY or len(self.SECRET_KEY) < 32:
-            import secrets
-            self.SECRET_KEY = secrets.token_urlsafe(32)
-            print("WARNING: Using auto-generated SECRET_KEY. Set SECRET_KEY environment variable for production.")
-
-        # Validate other critical settings
-        if self.ACCESS_TOKEN_EXPIRE_MINUTES < 5:
-            print("WARNING: ACCESS_TOKEN_EXPIRE_MINUTES is very low. Consider increasing for better UX.")
-
-        # Ensure media directory exists and is secure
-        self.MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-        self.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        self.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
-        # Set secure permissions on media directory (Unix only)
-        try:
-            import stat
-            self.MEDIA_DIR.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)  # 750
-        except (OSError, AttributeError):
-            pass  # Windows or permission error
     
     # Database
     DATABASE_URL: str = "sqlite:///./database.db"
@@ -95,4 +73,22 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
+# Create settings instance
 settings = Settings()
+
+# Create required directories after settings initialization
+settings.MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+settings.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Set secure permissions on media directory (Unix only)
+try:
+    import stat
+    settings.MEDIA_DIR.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)  # 750
+except (OSError, AttributeError):
+    pass  # Windows or permission error
+
+print(f"✓ Media directories created:")
+print(f"  MEDIA_DIR: {settings.MEDIA_DIR}")
+print(f"  UPLOAD_DIR: {settings.UPLOAD_DIR}")
+print(f"  RESULTS_DIR: {settings.RESULTS_DIR}")
