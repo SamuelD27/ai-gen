@@ -72,6 +72,7 @@ export interface TrainingSession {
   learning_rate?: number
   rank_dim?: number
   train_dim?: number
+  error_message?: string
   created_at: string
   started_at?: string
   completed_at?: string
