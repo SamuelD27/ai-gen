@@ -43,13 +43,13 @@ class Settings(BaseSettings):
     FRONTEND_PORT: int = 5173
     
     # File Storage
-    BASE_DIR: Path = Path(__file__).parent.parent.parent.parent
+    BASE_DIR: Path = Path(__file__).parent.parent.parent.parent.parent  # 5 parents up to /content/ai-gen
     UPLOAD_DIR: Path = BASE_DIR / "uploads"
     MEDIA_DIR: Path = BASE_DIR / "media"
     RESULTS_DIR: Path = BASE_DIR / "results"
-    
+
     # CharForge Integration
-    CHARFORGE_ROOT: Path = BASE_DIR.parent  # Points to the main CharForge directory
+    CHARFORGE_ROOT: Path = BASE_DIR  # Points to the main ai-gen directory
     CHARFORGE_SCRATCH_DIR: Path = CHARFORGE_ROOT / "scratch"
     COMFYUI_PATH: str = str(BASE_DIR / "ComfyUI")  # Default ComfyUI path
 
