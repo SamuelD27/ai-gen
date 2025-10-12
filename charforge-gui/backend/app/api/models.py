@@ -43,7 +43,9 @@ async def list_available_models(
 
     # ComfyUI model paths - use settings
     comfyui_path = Path(settings.COMFYUI_PATH)
-    
+    print(f"🔍 Scanning for models in ComfyUI path: {comfyui_path}")
+    print(f"   ComfyUI path exists: {comfyui_path.exists()}")
+
     def scan_model_directory(directory: Path, model_type: str) -> List[ModelInfo]:
         """Scan a directory for model files."""
         models = []
@@ -86,6 +88,8 @@ async def list_available_models(
     vaes = scan_model_directory(comfyui_path / "models" / "vae", "vae")
     loras = scan_model_directory(comfyui_path / "models" / "loras", "lora")
     controlnets = scan_model_directory(comfyui_path / "models" / "controlnet", "controlnet")
+
+    print(f"   Found {len(checkpoints)} checkpoints, {len(vaes)} VAEs, {len(loras)} LoRAs, {len(controlnets)} ControlNets")
     
     # Add MV adapters
     adapters = []
@@ -116,7 +120,9 @@ async def list_available_models(
     
     checkpoints.extend([m for m in default_models if m.type == "checkpoint"])
     vaes.extend([m for m in default_models if m.type == "vae"])
-    
+
+    print(f"   Returning: {len(checkpoints)} checkpoints (including defaults), {len(vaes)} VAEs (including defaults)")
+
     return ModelListResponse(
         checkpoints=checkpoints,
         vaes=vaes,
