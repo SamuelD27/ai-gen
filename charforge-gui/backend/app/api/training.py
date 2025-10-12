@@ -9,7 +9,13 @@ from pathlib import Path
 from app.core.database import get_db, Character, TrainingSession, User
 from app.core.auth import get_current_active_user, get_current_user_optional
 from app.core.config import settings
-from app.services.charforge_integration import CharForgeIntegration, CharacterConfig
+from app.services.charforge_integration import (
+    CharForgeIntegration,
+    CharacterConfig,
+    ModelConfig as CharForgeModelConfig,
+    MVAdapterConfig as ChargeForgeMVAdapterConfig,
+    AdvancedTrainingConfig as CharForgeAdvancedTrainingConfig
+)
 from app.services.settings_service import get_user_env_vars
 
 router = APIRouter()
@@ -453,6 +459,49 @@ async def run_training_background(
         # Create CharForge config
         logger.info("Creating training configuration...")
         try:
+            # Convert Pydantic models to dataclasses for CharForge
+            charforge_model_config = None
+            if request.model_config:
+                mc = request.model_config
+                charforge_model_config = CharForgeModelConfig(
+                    base_model=mc.base_model,
+                    vae_model=mc.vae_model,
+                    unet_model=mc.unet_model,
+                    adapter_path=mc.adapter_path,
+                    scheduler=mc.scheduler,
+                    dtype=mc.dtype
+                )
+
+            charforge_mv_config = None
+            if request.mv_adapter_config:
+                mvc = request.mv_adapter_config
+                charforge_mv_config = ChargeForgeMVAdapterConfig(
+                    enabled=mvc.enabled,
+                    num_views=mvc.num_views,
+                    height=mvc.height,
+                    width=mvc.width,
+                    guidance_scale=mvc.guidance_scale,
+                    reference_conditioning_scale=mvc.reference_conditioning_scale,
+                    azimuth_degrees=mvc.azimuth_degrees,
+                    remove_background=mvc.remove_background
+                )
+
+            charforge_advanced_config = None
+            if request.advanced_config:
+                ac = request.advanced_config
+                charforge_advanced_config = CharForgeAdvancedTrainingConfig(
+                    optimizer=ac.optimizer,
+                    weight_decay=ac.weight_decay,
+                    lr_scheduler=ac.lr_scheduler,
+                    gradient_checkpointing=ac.gradient_checkpointing,
+                    train_text_encoder=ac.train_text_encoder,
+                    noise_scheduler=ac.noise_scheduler,
+                    gradient_accumulation=ac.gradient_accumulation,
+                    mixed_precision=ac.mixed_precision,
+                    save_every=ac.save_every,
+                    max_saves=ac.max_saves
+                )
+
             config = CharacterConfig(
                 name=character.name,
                 input_image=input_images[0] if len(input_images) == 1 else None,
@@ -465,10 +514,10 @@ async def run_training_background(
                 rank_dim=request.rank_dim or 8,
                 pulidflux_images=request.pulidflux_images or 0,
 
-                # Model configuration
-                model_config=request.model_config or ModelConfig(),
-                mv_adapter_config=request.mv_adapter_config or MVAdapterConfig(),
-                advanced_config=request.advanced_config or AdvancedTrainingConfig(),
+                # Model configuration (converted to dataclasses)
+                model_config=charforge_model_config,
+                mv_adapter_config=charforge_mv_config,
+                advanced_config=charforge_advanced_config,
 
                 # ComfyUI model paths
                 comfyui_checkpoint=request.comfyui_checkpoint or "",
