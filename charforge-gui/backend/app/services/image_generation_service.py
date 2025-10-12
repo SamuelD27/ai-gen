@@ -125,32 +125,49 @@ class ImageGenerationService:
         logger.info(f"Loading pipeline: {model_id} (type: {model_type})")
 
         try:
+            import os
+            from huggingface_hub import login
+
+            # Ensure HuggingFace token is set
+            hf_token = os.getenv('HF_TOKEN') or os.getenv('HUGGING_FACE_HUB_TOKEN')
+            if hf_token:
+                try:
+                    login(token=hf_token, add_to_git_credential=False)
+                    logger.info("HuggingFace token authenticated")
+                except Exception as e:
+                    logger.warning(f"HF token login failed: {e}")
+
             # Load appropriate pipeline based on model type
+            load_kwargs = {
+                "torch_dtype": self.dtype,
+                "use_safetensors": True,
+            }
+
+            if hf_token:
+                load_kwargs["token"] = hf_token
+
             if model_type == "flux":
                 pipeline = FluxPipeline.from_pretrained(
                     model_id,
-                    torch_dtype=self.dtype,
-                    use_safetensors=True
+                    **load_kwargs
                 )
             elif model_type == "sd3":
                 pipeline = StableDiffusion3Pipeline.from_pretrained(
                     model_id,
-                    torch_dtype=self.dtype,
-                    use_safetensors=True
+                    **load_kwargs
                 )
             elif model_type == "sdxl":
+                if self.dtype == torch.float16:
+                    load_kwargs["variant"] = "fp16"
                 pipeline = DiffusionPipeline.from_pretrained(
                     model_id,
-                    torch_dtype=self.dtype,
-                    use_safetensors=True,
-                    variant="fp16" if self.dtype == torch.float16 else None
+                    **load_kwargs
                 )
             else:
                 # Generic pipeline loader
                 pipeline = AutoPipelineForText2Image.from_pretrained(
                     model_id,
-                    torch_dtype=self.dtype,
-                    use_safetensors=True
+                    **load_kwargs
                 )
 
             # Move to device
@@ -179,7 +196,22 @@ class ImageGenerationService:
 
         except Exception as e:
             logger.error(f"Failed to load pipeline {model_id}: {e}")
-            raise RuntimeError(f"Failed to load model {model_id}: {str(e)}")
+
+            # Provide helpful error message
+            error_msg = str(e)
+            if "401" in error_msg or "403" in error_msg or "authentication" in error_msg.lower():
+                raise RuntimeError(
+                    f"Failed to load model {model_id}: Authentication required. "
+                    f"Please set HF_TOKEN environment variable with your HuggingFace token. "
+                    f"Get token at: https://huggingface.co/settings/tokens"
+                )
+            elif "out of memory" in error_msg.lower() or "oom" in error_msg.lower():
+                raise RuntimeError(
+                    f"Failed to load model {model_id}: Out of memory. "
+                    f"Try using a smaller model (flux-schnell or playground-v25) or restart the session."
+                )
+            else:
+                raise RuntimeError(f"Failed to load model {model_id}: {str(e)}")
 
     def generate(
         self,
