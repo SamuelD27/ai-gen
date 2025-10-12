@@ -279,11 +279,10 @@ const historySessions = computed(() =>
 const loadTrainingSessions = async () => {
   isLoading.value = true
   try {
-    // Load all training sessions
-    // Note: This would need to be implemented in the API to get all sessions for a user
-    // For now, we'll simulate with empty data
-    sessions.value = []
+    // Load all training sessions for the current user
+    sessions.value = await trainingApi.getAllTrainingSessions()
   } catch (error: any) {
+    console.error('Failed to load training sessions:', error)
     toast.error('Failed to load training sessions')
   } finally {
     isLoading.value = false

@@ -71,29 +71,40 @@ class TrainingRequest(BaseModel):
 class TrainingResponse(BaseModel):
     id: int
     character_id: int
+    character_name: Optional[str] = None
     status: str
     progress: float
+    steps: Optional[int] = None
+    batch_size: Optional[int] = None
+    learning_rate: Optional[float] = None
+    rank_dim: Optional[int] = None
+    train_dim: Optional[int] = None
     created_at: datetime
     started_at: Optional[datetime]
     completed_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
 
 class CharacterResponse(BaseModel):
     id: int
     name: str
+    input_image_path: Optional[str]
+    dataset_id: Optional[int]
+    trigger_word: Optional[str]
     status: str
     work_dir: str
     created_at: datetime
     completed_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
 
 class CharacterCreateRequest(BaseModel):
     name: str
-    input_image_path: str
+    input_image_path: Optional[str] = None
+    dataset_id: Optional[int] = None
+    trigger_word: Optional[str] = None
 
 # Global integration instance
 charforge = CharForgeIntegration()
@@ -121,12 +132,37 @@ async def create_character(
             detail="Invalid character name. Use only letters, numbers, underscores, and hyphens (max 100 chars)"
         )
 
-    # Validate image path
-    if not request.input_image_path or not Path(request.input_image_path).exists():
+    # Validate that either image path OR dataset is provided
+    if not request.input_image_path and not request.dataset_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Valid input image path is required"
+            detail="Either input_image_path or dataset_id must be provided"
         )
+
+    # Validate image path if provided
+    if request.input_image_path and not Path(request.input_image_path).exists():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid input image path"
+        )
+
+    # Validate dataset if provided
+    if request.dataset_id:
+        from app.core.database import Dataset
+        dataset = db.query(Dataset).filter(
+            Dataset.id == request.dataset_id,
+            Dataset.user_id == current_user.id
+        ).first()
+        if not dataset:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Dataset not found"
+            )
+        if dataset.status != "ready":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Dataset is not ready for training"
+            )
 
     # Check if character name already exists for this user
     existing = db.query(Character).filter(
@@ -145,6 +181,8 @@ async def create_character(
         name=sanitized_name,
         user_id=current_user.id,
         input_image_path=request.input_image_path,
+        dataset_id=request.dataset_id,
+        trigger_word=request.trigger_word,
         work_dir=str(charforge.scratch_dir / sanitized_name),
         status="created"
     )
@@ -445,3 +483,38 @@ async def get_training_session(
         )
 
     return session
+
+@router.get("/training", response_model=List[TrainingResponse])
+async def get_all_training_sessions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Get all training sessions for the current user."""
+    # Query training sessions with character names
+    sessions = db.query(TrainingSession, Character.name.label('character_name')).join(
+        Character, TrainingSession.character_id == Character.id
+    ).filter(
+        TrainingSession.user_id == current_user.id
+    ).order_by(TrainingSession.created_at.desc()).all()
+
+    # Convert to response format
+    result = []
+    for session, character_name in sessions:
+        session_dict = {
+            "id": session.id,
+            "character_id": session.character_id,
+            "character_name": character_name,
+            "status": session.status,
+            "progress": session.progress,
+            "steps": session.steps,
+            "batch_size": session.batch_size,
+            "learning_rate": session.learning_rate,
+            "rank_dim": session.rank_dim,
+            "train_dim": session.train_dim,
+            "created_at": session.created_at,
+            "started_at": session.started_at,
+            "completed_at": session.completed_at
+        }
+        result.append(session_dict)
+
+    return result

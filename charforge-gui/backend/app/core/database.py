@@ -25,11 +25,13 @@ class User(Base):
 
 class Character(Base):
     __tablename__ = "characters"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     user_id = Column(Integer, nullable=False)
-    input_image_path = Column(String, nullable=False)
+    input_image_path = Column(String, nullable=True)  # Optional when using dataset
+    dataset_id = Column(Integer, nullable=True)  # Link to dataset for training
+    trigger_word = Column(String, nullable=True)  # Trigger word for the character
     work_dir = Column(String, nullable=False)
     status = Column(String, default="created")  # created, training, completed, failed
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -52,6 +52,9 @@ export interface User {
 export interface Character {
   id: number
   name: string
+  input_image_path?: string
+  dataset_id?: number
+  trigger_word?: string
   status: string
   work_dir: string
   created_at: string
@@ -61,8 +64,14 @@ export interface Character {
 export interface TrainingSession {
   id: number
   character_id: number
+  character_name?: string
   status: string
   progress: number
+  steps?: number
+  batch_size?: number
+  learning_rate?: number
+  rank_dim?: number
+  train_dim?: number
   created_at: string
   started_at?: string
   completed_at?: string
@@ -101,7 +110,7 @@ export const charactersApi = {
   list: (): Promise<Character[]> =>
     api.get('/training/characters').then(res => res.data),
   
-  create: (data: { name: string; input_image_path: string }): Promise<Character> =>
+  create: (data: { name: string; input_image_path?: string; dataset_id?: number; trigger_word?: string }): Promise<Character> =>
     api.post('/training/characters', data).then(res => res.data),
   
   get: (id: number): Promise<Character> =>
@@ -118,6 +127,9 @@ export const charactersApi = {
 export const trainingApi = {
   startTraining: (characterId: number, config: any): Promise<TrainingSession> =>
     api.post(`/training/characters/${characterId}/train`, { character_id: characterId, ...config }).then(res => res.data),
+
+  getAllTrainingSessions: (): Promise<TrainingSession[]> =>
+    api.get('/training/training').then(res => res.data),
 
   getTrainingSessions: (characterId: number): Promise<TrainingSession[]> =>
     api.get(`/training/characters/${characterId}/training`).then(res => res.data),

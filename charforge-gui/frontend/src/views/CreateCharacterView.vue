@@ -67,7 +67,12 @@
 
         <!-- Reference Image -->
         <Card class="p-6">
-          <h3 class="text-lg font-semibold mb-4">Reference Image</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Reference Image</h3>
+            <span v-if="form.datasetId" class="text-sm text-muted-foreground">
+              (Optional when using dataset)
+            </span>
+          </div>
 
           <div class="space-y-4">
             <!-- Image Selection -->
@@ -525,17 +530,17 @@ const availableTrainers = ref([])
 const selectedTrainer = ref('lora')
 
 const canCreate = computed(() => {
-  // Basic validation: name and image required
+  // Basic validation: name and (image OR dataset) required
   const hasName = form.value.name.trim().length > 0
-  const hasImage = !!(selectedImage.value || form.value.datasetId)
+  const hasImageOrDataset = !!(selectedImage.value || form.value.datasetId)
   const paramsValid = validateTrainingParameters()
 
   // Debug logging
   if (!hasName) console.log('❌ Character name is required')
-  if (!hasImage) console.log('❌ Image or dataset is required')
+  if (!hasImageOrDataset) console.log('❌ Image or dataset is required')
   if (!paramsValid) console.log('❌ Training parameters validation failed')
 
-  return hasName && hasImage && paramsValid
+  return hasName && hasImageOrDataset && paramsValid
 })
 
 const validateTrainingParameters = () => {
@@ -685,16 +690,19 @@ const createCharacter = async () => {
   try {
     let imagePath = ''
 
-    // If selected image is a File (newly uploaded), upload it first
-    if (selectedImage.value instanceof File) {
-      console.log('📤 Uploading new image...')
-      const uploadedFile = await mediaApi.upload(selectedImage.value)
-      imagePath = uploadedFile.file_path
-      console.log('✅ Image uploaded:', imagePath)
-    } else if (selectedImage.value) {
-      // Use existing media file path
-      imagePath = (selectedImage.value as MediaFile).file_path
-      console.log('✅ Using existing image:', imagePath)
+    // Only process image if not using a dataset
+    if (!form.value.datasetId) {
+      // If selected image is a File (newly uploaded), upload it first
+      if (selectedImage.value instanceof File) {
+        console.log('📤 Uploading new image...')
+        const uploadedFile = await mediaApi.upload(selectedImage.value)
+        imagePath = uploadedFile.file_path
+        console.log('✅ Image uploaded:', imagePath)
+      } else if (selectedImage.value) {
+        // Use existing media file path
+        imagePath = (selectedImage.value as MediaFile).file_path
+        console.log('✅ Using existing image:', imagePath)
+      }
     }
 
     // Use trigger word if provided, otherwise use character name
@@ -702,11 +710,21 @@ const createCharacter = async () => {
 
     // Create character
     console.log('📝 Creating character...')
-    const character = await charactersApi.create({
+    const characterData: any = {
       name: form.value.name.trim(),
-      input_image_path: imagePath,
       trigger_word: triggerWord
-    })
+    }
+
+    // Add image path or dataset ID
+    if (form.value.datasetId) {
+      characterData.dataset_id = parseInt(form.value.datasetId)
+      console.log('✅ Using dataset:', characterData.dataset_id)
+    } else {
+      characterData.input_image_path = imagePath
+      console.log('✅ Using image:', imagePath)
+    }
+
+    const character = await charactersApi.create(characterData)
 
     console.log('✅ Character created:', character)
     toast.success('Character created successfully!')
