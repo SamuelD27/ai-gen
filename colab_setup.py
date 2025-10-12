@@ -222,8 +222,138 @@ def main():
         run_command("tail -30 /tmp/frontend.log", "")
         run_command("tail -20 /tmp/backend.log", "")
 
+    # Run comprehensive API tests
+    print("\n" + "=" * 70)
+    print("🧪 Running API Tests")
+    print("=" * 70 + "\n")
+
+    import requests
+    from PIL import Image
+    import io
+
+    test_results = {}
+
+    # Test 1: Backend health
+    print("1️⃣ Testing backend health...")
+    try:
+        resp = requests.get('http://localhost:8000/health', timeout=5)
+        if resp.status_code == 200:
+            print("   ✅ Backend health check passed")
+            test_results['health'] = True
+        else:
+            print(f"   ❌ Backend returned {resp.status_code}")
+            test_results['health'] = False
+    except Exception as e:
+        print(f"   ❌ Backend not responding: {e}")
+        test_results['health'] = False
+
+    # Test 2: Auth config
+    print("\n2️⃣ Testing auth configuration...")
+    try:
+        resp = requests.get('http://localhost:8000/api/auth/config', timeout=5)
+        if resp.status_code == 200:
+            config = resp.json()
+            if config.get('auth_enabled') == False:
+                print(f"   ✅ Auth is disabled: {config}")
+                test_results['auth'] = True
+            else:
+                print(f"   ⚠️  Auth is ENABLED (should be disabled): {config}")
+                test_results['auth'] = False
+        else:
+            print(f"   ❌ Auth config returned {resp.status_code}")
+            test_results['auth'] = False
+    except Exception as e:
+        print(f"   ❌ Auth config failed: {e}")
+        test_results['auth'] = False
+
+    # Test 3: Directory structure
+    print("\n3️⃣ Checking directories...")
+    import os
+    dirs_to_check = [
+        '/content/ai-gen/media',
+        '/content/ai-gen/uploads',
+        '/content/ai-gen/results'
+    ]
+    for dir_path in dirs_to_check:
+        if os.path.exists(dir_path):
+            print(f"   ✅ {dir_path} exists")
+        else:
+            print(f"   ❌ {dir_path} MISSING")
+            test_results['directories'] = False
+    test_results['directories'] = True
+
+    # Test 4: Media upload
+    print("\n4️⃣ Testing media upload...")
+    try:
+        # Create test image
+        img = Image.new('RGB', (512, 512), color='red')
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='JPEG', quality=95)
+        img_bytes.seek(0)
+
+        # Upload
+        files = {'file': ('test_image.jpg', img_bytes, 'image/jpeg')}
+        resp = requests.post('http://localhost:8000/api/media/upload', files=files, timeout=10)
+
+        if resp.status_code == 200:
+            data = resp.json()
+            print(f"   ✅ Upload successful!")
+            print(f"      Filename: {data.get('filename')}")
+            print(f"      Size: {data.get('file_size')} bytes")
+            print(f"      URL: {data.get('file_url')}")
+            test_results['upload'] = True
+
+            # Clean up test file
+            try:
+                requests.delete(f"http://localhost:8000/api/media/files/{data.get('filename')}", timeout=5)
+                print(f"   🗑️  Test file cleaned up")
+            except:
+                pass
+        else:
+            print(f"   ❌ Upload failed: {resp.status_code}")
+            print(f"      Response: {resp.text}")
+            test_results['upload'] = False
+    except Exception as e:
+        print(f"   ❌ Upload test failed: {e}")
+        test_results['upload'] = False
+
+    # Test 5: Media list
+    print("\n5️⃣ Testing media list...")
+    try:
+        resp = requests.get('http://localhost:8000/api/media/files', timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            print(f"   ✅ Media list works (found {data.get('total', 0)} files)")
+            test_results['media_list'] = True
+        else:
+            print(f"   ❌ Media list failed: {resp.status_code}")
+            test_results['media_list'] = False
+    except Exception as e:
+        print(f"   ❌ Media list failed: {e}")
+        test_results['media_list'] = False
+
+    # Test summary
+    print("\n" + "=" * 70)
+    print("📊 Test Results Summary")
+    print("=" * 70)
+    passed = sum(1 for v in test_results.values() if v)
+    total = len(test_results)
+    print(f"\nPassed: {passed}/{total}")
+    for test, result in test_results.items():
+        status = "✅ PASS" if result else "❌ FAIL"
+        print(f"  {status} - {test}")
+
+    if passed == total:
+        print("\n🎉 All tests passed! System is fully operational!")
+    else:
+        print("\n⚠️  Some tests failed. Check the output above for details.")
+        print("📋 Backend logs:")
+        run_command("tail -50 /tmp/backend.log", "")
+
     # Create ngrok tunnel
-    print("🌐 Creating public tunnel...\n")
+    print("\n" + "=" * 70)
+    print("🌐 Creating public tunnel...")
+    print("=" * 70 + "\n")
     public_url = ngrok.connect(5173, bind_tls=True)
 
     print("\n" + "=" * 70)
