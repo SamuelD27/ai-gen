@@ -6,6 +6,41 @@ const api: AxiosInstance = axios.create({
   timeout: 30000,
 })
 
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+    if (config.data) {
+      console.log('📦 Request Data:', config.data)
+    }
+    return config
+  },
+  (error) => {
+    console.error('❌ Request Error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.status)
+    return response
+  },
+  (error) => {
+    if (error.response) {
+      console.error(`❌ API Error Response: ${error.config?.method?.toUpperCase()} ${error.config?.url}`)
+      console.error(`Status: ${error.response.status}`)
+      console.error('Error Data:', error.response.data)
+    } else if (error.request) {
+      console.error('❌ No response received:', error.request)
+    } else {
+      console.error('❌ Request setup error:', error.message)
+    }
+    return Promise.reject(error)
+  }
+)
+
 // Types
 export interface User {
   id: number
@@ -207,25 +242,25 @@ export interface CreateDatasetRequest {
 
 export const datasetApi = {
   createDataset: (data: CreateDatasetRequest): Promise<Dataset> =>
-    api.post('/datasets/datasets', data).then(res => res.data),
+    api.post('/datasets', data).then(res => res.data),
 
   getDatasets: (): Promise<{ datasets: Dataset[]; total: number }> =>
-    api.get('/datasets/datasets').then(res => res.data),
+    api.get('/datasets').then(res => res.data),
 
   getDataset: (id: number): Promise<Dataset> =>
-    api.get(`/datasets/datasets/${id}`).then(res => res.data),
+    api.get(`/datasets/${id}`).then(res => res.data),
 
   getDatasetImages: (id: number): Promise<DatasetImage[]> =>
-    api.get(`/datasets/datasets/${id}/images`).then(res => res.data),
+    api.get(`/datasets/${id}/images`).then(res => res.data),
 
   updateTriggerWord: (id: number, trigger_word: string): Promise<{ message: string }> =>
-    api.put(`/datasets/datasets/${id}/trigger-word`, { trigger_word }).then(res => res.data),
+    api.put(`/datasets/${id}/trigger-word`, { trigger_word }).then(res => res.data),
 
   updateImageCaption: (datasetId: number, imageId: number, caption: string): Promise<{ message: string }> =>
-    api.put(`/datasets/datasets/${datasetId}/images/${imageId}/caption`, { caption }).then(res => res.data),
+    api.put(`/datasets/${datasetId}/images/${imageId}/caption`, { caption }).then(res => res.data),
 
   deleteDataset: (id: number): Promise<{ message: string }> =>
-    api.delete(`/datasets/datasets/${id}`).then(res => res.data),
+    api.delete(`/datasets/${id}`).then(res => res.data),
 }
 
 export { api }

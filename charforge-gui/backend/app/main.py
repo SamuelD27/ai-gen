@@ -23,6 +23,19 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """Import existing datasets from scratch folder when auth is disabled."""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Log all registered routes
+    logger.info("=" * 60)
+    logger.info("🚀 MASUKA API Starting - Registered Routes:")
+    logger.info("=" * 60)
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            methods = ', '.join(route.methods) if route.methods else 'N/A'
+            logger.info(f"  {methods:8} {route.path}")
+    logger.info("=" * 60)
+
     if not settings.ENABLE_AUTH:
         from app.services.dataset_import import import_datasets_from_scratch
         from app.core.database import SessionLocal

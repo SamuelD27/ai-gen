@@ -66,7 +66,11 @@ async def create_dataset(
     current_user: User = Depends(get_current_user_optional)
 ):
     """Create a new dataset from selected images."""
-    
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"📝 POST /api/datasets - Creating dataset '{request.name}' for user {current_user.id}")
+
     # Validate input
     if not request.name.strip():
         raise HTTPException(
@@ -145,11 +149,17 @@ async def list_datasets(
     current_user: User = Depends(get_current_user_optional)
 ):
     """Get all datasets for the current user."""
-    
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"📋 GET /api/datasets - Fetching datasets for user {current_user.id}")
+
     datasets = db.query(Dataset).filter(
         Dataset.user_id == current_user.id
     ).order_by(Dataset.created_at.desc()).all()
-    
+
+    logger.info(f"✅ Found {len(datasets)} datasets")
+
     return DatasetListResponse(
         datasets=datasets,
         total=len(datasets)
