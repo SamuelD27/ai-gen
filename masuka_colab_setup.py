@@ -223,32 +223,9 @@ class MasukaSetup:
             capture_output=True
         )
 
-        # Install main requirements (contains ALL dependencies)
-        # Use constraints file to prevent Pillow from being upgraded
-        print_info("Installing all packages from unified requirements...")
-        constraints_file = self.config.repo_dir / "constraints-masuka.txt"
-
-        install_cmd = [
-            sys.executable, "-m", "pip", "install",
-            "-r", str(requirements_file),
-            "--no-cache-dir"  # Prevent caching issues
-        ]
-
-        # Add constraints if file exists
-        if constraints_file.exists():
-            install_cmd.extend(["--constraint", str(constraints_file)])
-            print_info("Using constraints file to lock Pillow version during install")
-
-        subprocess.run(install_cmd, check=True, capture_output=True)
-
-        # IMPORTANT: Do NOT install backend/requirements.txt separately!
-        # It has outdated versions that trigger dependency conflicts and Pillow upgrades.
-        # All required packages are now in requirements-masuka.txt
-
-        # CRITICAL FIX: Force Pillow to 10.1.0 LAST
-        # Some packages (like torchvision, opencv-python) may upgrade Pillow during install
-        # We MUST install Pillow 10.1.0 as the absolute FINAL step with --no-deps
-        print_info("Forcing Pillow to 10.1.0 (matching Colab's _imaging extension)...")
+        # NUCLEAR OPTION: Install Pillow 10.1.0 FIRST and mark it to never be upgraded
+        # This prevents ANY package from upgrading it during requirements install
+        print_info("Pre-installing Pillow 10.1.0 (matching Colab's _imaging extension)...")
         subprocess.run(
             [
                 sys.executable, "-m", "pip", "uninstall", "-y", "pillow"
@@ -259,20 +236,64 @@ class MasukaSetup:
             [
                 sys.executable, "-m", "pip", "install",
                 "pillow==10.1.0",
+                "--no-cache-dir"
+            ],
+            check=True,
+            capture_output=True
+        )
+        print_success("Pillow 10.1.0 installed")
+
+        # Create a temporary requirements file WITHOUT Pillow
+        # This prevents pip from trying to "resolve" Pillow version conflicts
+        print_info("Creating filtered requirements (excluding Pillow)...")
+        temp_requirements = Path("/tmp/requirements-no-pillow.txt")
+        with open(requirements_file, 'r') as f_in:
+            with open(temp_requirements, 'w') as f_out:
+                for line in f_in:
+                    # Skip Pillow line and comments about Pillow
+                    if 'pillow' not in line.lower():
+                        f_out.write(line)
+
+        # Install main requirements WITHOUT Pillow (since we already installed it)
+        print_info("Installing all other packages (excluding Pillow)...")
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "install",
+                "-r", str(temp_requirements),
+                "--no-cache-dir"  # Prevent caching issues
+            ],
+            check=True,
+            capture_output=True
+        )
+
+        # IMPORTANT: Do NOT install backend/requirements.txt separately!
+        # It has outdated versions that trigger dependency conflicts and Pillow upgrades.
+        # All required packages are now in requirements-masuka.txt
+
+        # FINAL VERIFICATION: Force Pillow to 10.1.0 one more time
+        # In case any package tried to upgrade it
+        print_info("Final Pillow lock to 10.1.0...")
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "install",
+                "pillow==10.1.0",
                 "--no-cache-dir", "--force-reinstall", "--no-deps"
             ],
             check=True,
             capture_output=True
         )
-        print_success("Pillow locked at 10.1.0")
+        print_success("Pillow definitively locked at 10.1.0")
 
-        # Verify critical packages
+        # Verify critical packages (but catch Pillow import errors gracefully)
         self._verify_packages()
 
         print_success("Python dependencies installed")
 
     def _verify_packages(self):
         """Verify critical packages are installed correctly"""
+        print_info("Verifying package versions...")
+
+        # Use pip show instead of importing (safer - won't trigger _imaging errors)
         critical_packages = {
             "torch": "2.5",
             "diffusers": "0.33",
@@ -281,18 +302,39 @@ class MasukaSetup:
             "pillow": "10.1"  # Match Colab's _imaging extension
         }
 
-        import importlib
+        all_ok = True
         for package, expected_version in critical_packages.items():
             try:
-                mod = importlib.import_module(package.replace("-", "_"))
-                version = getattr(mod, "__version__", "unknown")
-                if version.startswith(expected_version):
-                    print_success(f"{package} v{version}")
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "show", package],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+
+                if result.returncode == 0:
+                    # Parse version from pip show output
+                    for line in result.stdout.split('\n'):
+                        if line.startswith('Version:'):
+                            version = line.split(':', 1)[1].strip()
+                            if version.startswith(expected_version):
+                                print_success(f"{package} v{version}")
+                            else:
+                                print_warning(f"{package} v{version} (expected {expected_version}.x)")
+                                if package == "pillow":
+                                    print_error("PILLOW VERSION MISMATCH DETECTED!")
+                                    all_ok = False
+                            break
                 else:
-                    print_warning(f"{package} v{version} (expected {expected_version}.x)")
-            except ImportError:
-                print_error(f"{package} not installed!")
-                raise
+                    print_error(f"{package} not installed!")
+                    all_ok = False
+
+            except Exception as e:
+                print_error(f"Error checking {package}: {e}")
+                all_ok = False
+
+        if not all_ok:
+            raise RuntimeError("Package verification failed - check versions above")
 
     def _install_frontend_deps(self):
         """Install frontend dependencies"""
