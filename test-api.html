@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CharForge API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .json-output {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 CharForge/MASUKA API Test Suite</h1>
+
+    <div class="test-section">
+        <h2>📊 Dataset API Tests</h2>
+        <button onclick="testDatasetList()">Test List Datasets</button>
+        <button onclick="testCreateDataset()">Test Create Dataset</button>
+        <div id="dataset-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Training API Tests</h2>
+        <button onclick="testCharacterList()">Test List Characters</button>
+        <button onclick="testCreateCharacter()">Test Create Character (Rate Limit Test)</button>
+        <div id="training-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧮 Batch Size Calculation Test</h2>
+        <button onclick="testBatchSizeCalc()">Test Batch Size Time Estimation</button>
+        <div id="batch-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔒 Rate Limiting Test</h2>
+        <button onclick="testRateLimits()">Test Rate Limits (Rapid Fire)</button>
+        <div id="rate-results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+
+        function addResult(containerId, message, type = 'info', data = null) {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+
+            let html = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            if (data) {
+                html += `<pre class="json-output">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            result.innerHTML = html;
+            container.appendChild(result);
+        }
+
+        // Dataset API Tests
+        async function testDatasetList() {
+            const container = 'dataset-results';
+            document.getElementById(container).innerHTML = '';
+            addResult(container, 'Testing GET /api/datasets/datasets...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/datasets/datasets`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult(container, `✅ Success! Found ${data.total} datasets`, 'success', data);
+                } else {
+                    addResult(container, `❌ Error: ${response.status} ${response.statusText}`, 'error', data);
+                }
+            } catch (error) {
+                addResult(container, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateDataset() {
+            const container = 'dataset-results';
+            addResult(container, 'Testing POST /api/datasets/datasets...', 'info');
+
+            const testData = {
+                name: `Test Dataset ${Date.now()}`,
+                images: [
+                    {
+                        filename: 'test1.jpg',
+                        url: '/media/test1.jpg',
+                        caption: 'Test image 1'
+                    }
+                ],
+                trigger_word: 'test_trigger'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/datasets/datasets`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult(container, `✅ Dataset created successfully!`, 'success', data);
+                } else {
+                    addResult(container, `❌ Error: ${response.status} ${response.statusText}`, 'error', data);
+                }
+            } catch (error) {
+                addResult(container, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Training API Tests
+        async function testCharacterList() {
+            const container = 'training-results';
+            document.getElementById(container).innerHTML = '';
+            addResult(container, 'Testing GET /api/training/characters...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/training/characters`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult(container, `✅ Success! Found ${data.length} characters`, 'success', data);
+                } else {
+                    addResult(container, `❌ Error: ${response.status} ${response.statusText}`, 'error', data);
+                }
+            } catch (error) {
+                addResult(container, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateCharacter() {
+            const container = 'training-results';
+            addResult(container, 'Testing POST /api/training/characters (Rate Limit Test)...', 'info');
+
+            const testData = {
+                name: `Test Character ${Date.now()}`,
+                dataset_id: 1,
+                config: {
+                    steps: 800,
+                    batch_size: 1,
+                    learning_rate: 8e-4,
+                    train_dim: 512,
+                    rank_dim: 8
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/training/characters`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult(container, `✅ Character created successfully!`, 'success', data);
+                } else if (response.status === 429) {
+                    addResult(container, `⚠️ Rate limit hit (429): ${data.detail}`, 'error', data);
+                } else {
+                    addResult(container, `❌ Error: ${response.status} ${response.statusText}`, 'error', data);
+                }
+            } catch (error) {
+                addResult(container, `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Batch Size Calculation Test
+        function testBatchSizeCalc() {
+            const container = 'batch-results';
+            document.getElementById(container).innerHTML = '';
+            addResult(container, 'Testing batch size time calculations...', 'info');
+
+            const baseTimePerStep = 2; // seconds
+            const steps = 800;
+
+            const batchSizes = [1, 2, 4, 8];
+            const results = [];
+
+            for (const batchSize of batchSizes) {
+                let multiplier = 1;
+
+                // Using the formula from ModelConfigSummary.vue
+                multiplier *= (1.0 / Math.sqrt(batchSize));
+
+                const totalSeconds = steps * baseTimePerStep * multiplier;
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+                const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+                results.push({
+                    batch_size: batchSize,
+                    multiplier: multiplier.toFixed(2),
+                    estimated_time: timeStr,
+                    total_seconds: Math.floor(totalSeconds)
+                });
+            }
+
+            addResult(container,
+                '✅ Batch size calculations (should decrease with larger batch size):',
+                'success',
+                results
+            );
+
+            // Verify the calculation is correct
+            const isCorrect = results[0].total_seconds > results[1].total_seconds &&
+                            results[1].total_seconds > results[2].total_seconds;
+
+            if (isCorrect) {
+                addResult(container, '✅ Calculation is CORRECT: Time decreases as batch size increases', 'success');
+            } else {
+                addResult(container, '❌ Calculation is WRONG: Time should decrease as batch size increases', 'error');
+            }
+        }
+
+        // Rate Limiting Test
+        async function testRateLimits() {
+            const container = 'rate-results';
+            document.getElementById(container).innerHTML = '';
+            addResult(container, 'Testing rate limits with rapid requests...', 'info');
+
+            const endpoints = [
+                { path: '/datasets/datasets', method: 'GET', name: 'Dataset List' },
+                { path: '/training/characters', method: 'GET', name: 'Character List' },
+            ];
+
+            for (const endpoint of endpoints) {
+                addResult(container, `Testing ${endpoint.name} with 10 rapid requests...`, 'info');
+
+                let successCount = 0;
+                let rateLimitCount = 0;
+
+                // Send 10 requests rapidly
+                const promises = [];
+                for (let i = 0; i < 10; i++) {
+                    promises.push(
+                        fetch(`${API_BASE}${endpoint.path}`, { method: endpoint.method })
+                            .then(response => {
+                                if (response.ok) successCount++;
+                                else if (response.status === 429) rateLimitCount++;
+                                return response;
+                            })
+                    );
+                }
+
+                await Promise.all(promises);
+
+                const result = {
+                    endpoint: endpoint.name,
+                    successful_requests: successCount,
+                    rate_limited_requests: rateLimitCount,
+                    total_requests: 10
+                };
+
+                if (rateLimitCount > 0) {
+                    addResult(container,
+                        `⚠️ Rate limit detected for ${endpoint.name}`,
+                        'error',
+                        result
+                    );
+                } else {
+                    addResult(container,
+                        `✅ No rate limiting for ${endpoint.name} (all 10 requests succeeded)`,
+                        'success',
+                        result
+                    );
+                }
+            }
+
+            // Test training endpoint specifically (since user reported issues here)
+            addResult(container, 'Testing POST /training/characters with 5 rapid requests...', 'info');
+
+            let trainingSuccess = 0;
+            let trainingRateLimit = 0;
+
+            for (let i = 0; i < 5; i++) {
+                const response = await fetch(`${API_BASE}/training/characters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: `Rate Test ${i}`,
+                        dataset_id: 1,
+                        config: {}
+                    })
+                });
+
+                if (response.ok) trainingSuccess++;
+                else if (response.status === 429) trainingRateLimit++;
+
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+            }
+
+            if (trainingRateLimit > 0) {
+                addResult(container,
+                    `❌ Rate limit HIT on training endpoint! (${trainingRateLimit}/5 requests limited)`,
+                    'error'
+                );
+            } else {
+                addResult(container,
+                    `✅ No rate limit on training endpoint (${trainingSuccess}/5 succeeded)`,
+                    'success'
+                );
+            }
+        }
+
+        // Run initial test
+        window.onload = () => {
+            addResult('dataset-results', 'Click buttons above to test API endpoints', 'info');
+            addResult('training-results', 'Backend URL: ' + API_BASE, 'info');
+
+            // Check if backend is reachable
+            fetch(`${API_BASE}/health`)
+                .then(response => {
+                    if (response.ok) {
+                        addResult('dataset-results', '✅ Backend is reachable!', 'success');
+                    }
+                })
+                .catch(error => {
+                    addResult('dataset-results', '⚠️ Backend might not be running or CORS issue', 'error');
+                });
+        }
+    </script>
+</body>
+</html>
