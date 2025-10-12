@@ -23,7 +23,7 @@ bitsandbytes==0.45.0
 # ============================================================================
 # IMAGE PROCESSING
 # ============================================================================
-pillow==11.0.0  # Compatible with PyTorch 2.5.0
+pillow==10.1.0  # Match Colab's pre-built _imaging extension
 opencv-python==4.10.0.84
 imageio==2.36.1
 imageio-ffmpeg==0.5.1

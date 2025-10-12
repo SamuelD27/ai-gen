@@ -223,6 +223,24 @@ class MasukaSetup:
             capture_output=True
         )
 
+        # Fix Pillow version FIRST to match Colab's _imaging extension
+        print_info("Fixing Pillow to version 10.1.0...")
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "uninstall", "-y", "pillow"
+            ],
+            capture_output=True
+        )
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "install",
+                "pillow==10.1.0",
+                "--no-cache-dir", "--force-reinstall"
+            ],
+            check=True,
+            capture_output=True
+        )
+
         subprocess.run(
             [
                 sys.executable, "-m", "pip", "install",
@@ -254,7 +272,7 @@ class MasukaSetup:
             "diffusers": "0.33",
             "transformers": "4.48",
             "fastapi": "0.115",
-            "pillow": "11.0"
+            "pillow": "10.1"  # Match Colab's _imaging extension
         }
 
         import importlib
