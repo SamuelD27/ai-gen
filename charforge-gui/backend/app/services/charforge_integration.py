@@ -148,8 +148,16 @@ class CharForgeIntegration:
             if len(config.name) > 100:
                 return False
 
-            # Validate file paths
-            if not Path(config.input_image).exists():
+            # Validate file paths - check either single image or multiple images
+            if config.input_image and not Path(config.input_image).exists():
+                return False
+            if config.input_images:
+                for img_path in config.input_images:
+                    if not Path(img_path).exists():
+                        return False
+
+            # Ensure at least one input is provided
+            if not config.input_image and not config.input_images:
                 return False
 
             return True
@@ -247,7 +255,6 @@ class CharForgeIntegration:
             sys.executable,
             str(self.charforge_root / "train_character.py"),
             "--name", self._sanitize_string(config.name),
-            "--input", str(Path(config.input_image).resolve()),
             "--steps", str(int(config.steps)),
             "--batch_size", str(int(config.batch_size)),
             "--lr", str(float(config.learning_rate)),
@@ -255,6 +262,15 @@ class CharForgeIntegration:
             "--rank_dim", str(int(config.rank_dim)),
             "--pulidflux_images", str(int(config.pulidflux_images))
         ]
+
+        # Add input images - either single or multiple
+        if config.input_images:
+            # Multiple images from dataset
+            for img_path in config.input_images:
+                cmd.extend(["--input", str(Path(img_path).resolve())])
+        elif config.input_image:
+            # Single image
+            cmd.extend(["--input", str(Path(config.input_image).resolve())])
 
         # Add model configuration
         if config.model_config:

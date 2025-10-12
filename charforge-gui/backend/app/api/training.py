@@ -625,7 +625,8 @@ async def run_training_background(
         if session:
             session.status = "failed"
             session.completed_at = datetime.utcnow()
-            # Store error message in session (we'll add this field to the model)
+            # Store error message in session
+            session.error_message = f"{type(e).__name__}: {str(e)}"
             logger.error(f"Error type: {type(e).__name__}, Message: {str(e)}")
 
         # Update character status

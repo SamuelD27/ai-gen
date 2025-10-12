@@ -39,7 +39,7 @@ class Character(Base):
 
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     character_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=False)
@@ -49,9 +49,10 @@ class TrainingSession(Base):
     train_dim = Column(Integer, default=512)
     rank_dim = Column(Integer, default=8)
     pulidflux_images = Column(Integer, default=0)
-    status = Column(String, default="pending")  # pending, running, completed, failed
+    status = Column(String, default="pending")  # pending, running, completed, failed, cancelled
     progress = Column(Float, default=0.0)
     log_file = Column(String, nullable=True)
+    error_message = Column(Text, nullable=True)  # Store error details for failed sessions
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -125,4 +126,4 @@ def get_db() -> Session:
         db.close()
 
 # Export SessionLocal for background tasks
-__all__ = ["Base", "engine", "SessionLocal", "get_db", "User", "Character", "TrainingSession", "InferenceSession", "AppSettings", "Dataset", "DatasetImage"]
+__all__ = ["Base", "engine", "SessionLocal", "get_db", "User", "Character", "TrainingSession", "InferenceJob", "AppSettings", "Dataset", "DatasetImage"]
