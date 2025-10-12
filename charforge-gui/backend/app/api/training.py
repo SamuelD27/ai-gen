@@ -362,16 +362,16 @@ async def start_training(
     background_tasks.add_task(
         run_training_background,
         training_session.id,
-        character,
+        character.id,  # Pass character ID instead of object
         request,
         current_user.id
     )
-    
+
     return training_session
 
 async def run_training_background(
     session_id: int,
-    character: Character,
+    character_id: int,  # Changed from Character object to int ID
     request: TrainingRequest,
     user_id: int
 ):
@@ -380,14 +380,21 @@ async def run_training_background(
     logger = logging.getLogger(__name__)
     logger.info(f"=== STARTING TRAINING ===")
     logger.info(f"Session ID: {session_id}")
-    logger.info(f"Character: {character.name} (ID: {character.id})")
+    logger.info(f"Character ID: {character_id}")
     logger.info(f"User ID: {user_id}")
-    logger.info(f"Dataset ID: {character.dataset_id}")
-    logger.info(f"Input image: {character.input_image_path}")
 
     db = next(get_db())
 
     try:
+        # Re-query the character in this session
+        character = db.query(Character).filter(Character.id == character_id).first()
+        if not character:
+            raise ValueError(f"Character {character_id} not found")
+
+        logger.info(f"Character: {character.name}")
+        logger.info(f"Dataset ID: {character.dataset_id}")
+        logger.info(f"Input image: {character.input_image_path}")
+
         # Update session status
         session = db.query(TrainingSession).filter(TrainingSession.id == session_id).first()
         session.status = "running"
