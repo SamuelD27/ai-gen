@@ -171,9 +171,11 @@ const estimatedTime = computed(() => {
   // Adjust for resolution
   if (props.config.train_dim >= 1024) multiplier *= 1.5
   if (props.config.train_dim >= 768) multiplier *= 1.2
-  
-  // Adjust for batch size
-  multiplier *= props.config.batch_size
+
+  // Adjust for batch size (higher batch size = fewer steps needed = faster training)
+  // Each step takes slightly longer with larger batches, but the net effect is faster
+  // Approximate: batch_size 1 = 1x, batch_size 2 = 0.6x, batch_size 4 = 0.4x
+  multiplier *= (1.0 / Math.sqrt(props.config.batch_size))
   
   // Adjust for MV Adapter
   if (props.config.mvAdapterConfig.enabled) {
