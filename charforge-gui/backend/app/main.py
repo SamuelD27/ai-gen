@@ -15,9 +15,9 @@ from app.api import auth, training, inference, media, datasets, models, settings
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="CharForge GUI API",
-    description="API for CharForge AI Character LoRA Creation",
-    version="1.0.0"
+    title="MASUKA API",
+    description="Professional AI Image & Video Generation Platform API",
+    version="2.0.0"
 )
 
 @app.on_event("startup")
@@ -103,7 +103,11 @@ app.include_router(settings_api.router, prefix="/api/settings", tags=["settings"
 
 @app.get("/")
 async def root():
-    return {"message": "CharForge GUI API", "version": "1.0.0"}
+    return {
+        "message": "MASUKA - AI Generation Platform API",
+        "version": "2.0.0",
+        "features": ["image_generation", "video_generation", "lora_training"]
+    }
 
 @app.get("/health")
 async def health_check():
@@ -111,8 +115,9 @@ async def health_check():
     from datetime import datetime
     return {
         "status": "healthy",
+        "platform": "MASUKA",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0"
+        "version": "2.0.0"
     }
 
 if __name__ == "__main__":
