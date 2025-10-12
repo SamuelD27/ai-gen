@@ -223,24 +223,8 @@ class MasukaSetup:
             capture_output=True
         )
 
-        # Fix Pillow version FIRST to match Colab's _imaging extension
-        print_info("Fixing Pillow to version 10.1.0...")
-        subprocess.run(
-            [
-                sys.executable, "-m", "pip", "uninstall", "-y", "pillow"
-            ],
-            capture_output=True
-        )
-        subprocess.run(
-            [
-                sys.executable, "-m", "pip", "install",
-                "pillow==10.1.0",
-                "--no-cache-dir", "--force-reinstall"
-            ],
-            check=True,
-            capture_output=True
-        )
-
+        # Install main requirements
+        print_info("Installing main packages...")
         subprocess.run(
             [
                 sys.executable, "-m", "pip", "install",
@@ -254,11 +238,32 @@ class MasukaSetup:
         # Install backend requirements
         backend_requirements = self.config.repo_dir / "charforge-gui/backend/requirements.txt"
         if backend_requirements.exists():
+            print_info("Installing backend packages...")
             subprocess.run(
                 [sys.executable, "-m", "pip", "install", "-r", str(backend_requirements)],
                 check=True,
                 capture_output=True
             )
+
+        # NOW fix Pillow version LAST (after everything else)
+        # This ensures nothing upgrades it after we set the correct version
+        print_info("Locking Pillow to 10.1.0 (matching Colab's _imaging extension)...")
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "uninstall", "-y", "pillow"
+            ],
+            capture_output=True
+        )
+        subprocess.run(
+            [
+                sys.executable, "-m", "pip", "install",
+                "pillow==10.1.0",
+                "--no-cache-dir", "--force-reinstall", "--no-deps"
+            ],
+            check=True,
+            capture_output=True
+        )
+        print_success("Pillow locked at 10.1.0")
 
         # Verify critical packages
         self._verify_packages()
