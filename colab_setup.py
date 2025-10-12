@@ -268,7 +268,6 @@ def main():
 
     # Test 3: Directory structure
     print("\n3️⃣ Checking directories...")
-    import os
     dirs_to_check = [
         '/content/ai-gen/media',
         '/content/ai-gen/uploads',
