@@ -250,6 +250,18 @@ const selectedImages = ref<string[]>([])
 const isCreating = ref(false)
 const fileInput = ref<HTMLInputElement>()
 
+// Debug: Watch for changes
+import { watch } from 'vue'
+watch(datasetName, (newVal) => {
+  console.log('🔄 Dataset name changed to:', newVal)
+})
+watch(triggerWord, (newVal) => {
+  console.log('🔄 Trigger word changed to:', newVal)
+})
+watch(selectedImages, (newVal) => {
+  console.log('🔄 Selected images changed, count:', newVal.length)
+})
+
 const canCreateDataset = computed(() => {
   const hasName = datasetName.value.trim().length > 0
   const hasTrigger = triggerWord.value.trim().length > 0
