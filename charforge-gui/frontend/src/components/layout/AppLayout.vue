@@ -3,8 +3,8 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-card border-r border-border">
       <div class="p-6">
-        <h1 class="text-xl font-bold">CharForge</h1>
-        <p class="text-sm text-muted-foreground">AI Character LoRA</p>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">MASUKA</h1>
+        <p class="text-sm text-muted-foreground">AI Generation Platform</p>
       </div>
       
       <nav class="px-4 space-y-2">
@@ -39,7 +39,7 @@
             <!-- Simple user indicator (no authentication) -->
             <div class="flex items-center text-sm text-muted-foreground">
               <User class="h-4 w-4 mr-2" />
-              CharForge User
+              MASUKA User
             </div>
           </div>
         </div>
@@ -83,6 +83,6 @@ const navigation = [
 
 const pageTitle = computed(() => {
   const currentNav = navigation.find(item => item.href === route.path)
-  return currentNav?.name || 'CharForge'
+  return currentNav?.name || 'MASUKA'
 })
 </script>

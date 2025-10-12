@@ -7,12 +7,14 @@
       <div class="p-8">
         <!-- Header -->
         <div class="text-center mb-8">
-          <div class="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center mb-4">
-            <Sparkles class="h-10 w-10 text-primary-foreground" />
+          <div class="mx-auto w-20 h-20 bg-gradient-to-br from-primary via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <Sparkles class="h-10 w-10 text-white" />
           </div>
-          <h1 class="text-3xl font-bold mb-2">Welcome to CharForge!</h1>
+          <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Welcome to MASUKA!
+          </h1>
           <p class="text-lg text-muted-foreground">
-            AI-Powered Character LoRA Creation Made Simple
+            Professional AI Image & Video Generation Platform
           </p>
         </div>
 
