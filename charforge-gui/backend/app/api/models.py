@@ -40,9 +40,9 @@ async def list_available_models(
     current_user: User = Depends(get_current_user_optional)
 ):
     """Get all available models from ComfyUI and other sources."""
-    
-    # ComfyUI model paths
-    comfyui_path = Path(os.getenv("COMFYUI_PATH", "./ComfyUI"))
+
+    # ComfyUI model paths - use settings
+    comfyui_path = Path(settings.COMFYUI_PATH)
     
     def scan_model_directory(directory: Path, model_type: str) -> List[ModelInfo]:
         """Scan a directory for model files."""
@@ -231,9 +231,9 @@ async def validate_model_path(
         return {"valid": True, "type": "local", "message": "Local model file found"}
     
     # Check relative to ComfyUI
-    comfyui_path = Path(os.getenv("COMFYUI_PATH", "./ComfyUI"))
+    comfyui_path = Path(settings.COMFYUI_PATH)
     full_path = comfyui_path / model_path
     if full_path.exists() and full_path.is_file():
         return {"valid": True, "type": "comfyui", "message": "ComfyUI model found"}
-    
+
     return {"valid": False, "type": "unknown", "message": "Model not found"}
