@@ -49,6 +49,22 @@ def main():
         IS_COLAB = False
         print("⚠️  Not running in Colab, but continuing anyway...\n")
 
+    # Check for Pillow version conflict early
+    try:
+        from PIL import Image
+        # Test if it actually works
+        Image.new('RGB', (1, 1))
+    except (ImportError, AttributeError) as e:
+        print("⚠️  Pillow version conflict detected!")
+        print("🔧 Fixing Pillow installation...\n")
+        subprocess.run(["pip", "uninstall", "-y", "pillow"], capture_output=True)
+        subprocess.run(["pip", "install", "--no-cache-dir", "--force-reinstall", "pillow==10.1.0"], capture_output=True)
+        print("✅ Pillow fixed! Restarting script...\n")
+        print("=" * 70)
+        # Re-run the script
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+        return
+
     # Step 1: Check GPU
     print("🔍 Checking GPU...")
     run_command("nvidia-smi", "")
@@ -78,12 +94,6 @@ def main():
     print("")
     # Step 4: Install Python dependencies
     print("📦 Installing Python dependencies (this may take a few minutes)...\n")
-
-    # Fix Pillow version conflict first
-    print("Fixing Pillow installation...")
-    run_command("pip uninstall -y pillow", "")
-    run_command("pip install --no-cache-dir pillow", "")
-
     run_command("pip install -q -r requirements.txt", "Installing main requirements")
     run_command("pip install -q -r charforge-gui/backend/requirements.txt",
                "Installing GUI backend requirements")
@@ -235,8 +245,8 @@ def main():
     print("=" * 70 + "\n")
 
     import requests
-    from PIL import Image
     import io
+    from PIL import Image
 
     test_results = {}
 
