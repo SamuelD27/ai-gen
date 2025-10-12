@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = BASE_DIR / "uploads"
     MEDIA_DIR: Path = BASE_DIR / "media"
     RESULTS_DIR: Path = BASE_DIR / "results"
+    LORA_OUTPUT_DIR: Path = BASE_DIR / "loras"  # For trained LoRA models
 
     # CharForge Integration
     CHARFORGE_ROOT: Path = BASE_DIR  # Points to the main ai-gen directory
@@ -79,10 +80,20 @@ class Settings(BaseSettings):
     DEFAULT_TEST_DIM: int = 1024
     DEFAULT_INFERENCE_STEPS: int = 30
     DEFAULT_BATCH_SIZE_INFERENCE: int = 4
-    
+
+    @field_validator('MEDIA_DIR', 'UPLOAD_DIR', 'RESULTS_DIR', 'LORA_OUTPUT_DIR', mode='before')
+    @classmethod
+    def convert_str_to_path(cls, v):
+        """Convert string paths from environment to Path objects"""
+        if isinstance(v, str):
+            return Path(v)
+        return v
+
     class Config:
         env_file = ".env"
         case_sensitive = True
+        # Allow Path fields to be set from env vars as strings
+        arbitrary_types_allowed = True
 
 # Create settings instance
 settings = Settings()
@@ -91,6 +102,7 @@ settings = Settings()
 settings.MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 settings.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+settings.LORA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Set secure permissions on media directory (Unix only)
 try:
@@ -103,3 +115,4 @@ print(f"✓ Media directories created:")
 print(f"  MEDIA_DIR: {settings.MEDIA_DIR}")
 print(f"  UPLOAD_DIR: {settings.UPLOAD_DIR}")
 print(f"  RESULTS_DIR: {settings.RESULTS_DIR}")
+print(f"  LORA_OUTPUT_DIR: {settings.LORA_OUTPUT_DIR}")
