@@ -23,6 +23,7 @@ import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from datetime import datetime
 
 # ANSI color codes for beautiful output
 class Colors:
@@ -567,7 +568,7 @@ class MasukaSetup:
             # Import database models to trigger table creation/migration
             sys.path.insert(0, str(backend_dir))
 
-            from app.core.database import Base, engine
+            from app.core.database import Base, engine, SessionLocal, TrainingSession, Character
             from app.core import database  # Import to ensure all models are loaded
 
             # Create/update all tables based on current models
@@ -577,6 +578,38 @@ class MasukaSetup:
             print_success("Database migration complete")
             print_info("New columns added: Character.dataset_id, Character.trigger_word")
             print_info("Modified: Character.input_image_path (now nullable)")
+
+            # Clean up stuck training sessions
+            print_info("Cleaning up stuck training sessions...")
+            db = SessionLocal()
+            try:
+                # Find all pending/running sessions
+                stuck_sessions = db.query(TrainingSession).filter(
+                    TrainingSession.status.in_(["pending", "running"])
+                ).all()
+
+                if stuck_sessions:
+                    print_warning(f"Found {len(stuck_sessions)} stuck training sessions")
+                    for session in stuck_sessions:
+                        session.status = "failed"
+                        session.completed_at = datetime.utcnow()
+                        print_info(f"  Cancelled session {session.id} (character_id: {session.character_id})")
+
+                        # Reset character status
+                        character = db.query(Character).filter(Character.id == session.character_id).first()
+                        if character and character.status == "training":
+                            character.status = "failed"
+                            print_info(f"  Reset character {character.name} status to 'failed'")
+
+                    db.commit()
+                    print_success(f"Cleaned up {len(stuck_sessions)} stuck sessions")
+                else:
+                    print_success("No stuck sessions found")
+
+            except Exception as cleanup_error:
+                print_warning(f"Session cleanup failed: {cleanup_error}")
+            finally:
+                db.close()
 
         except Exception as e:
             print_error(f"Database migration failed: {e}")
