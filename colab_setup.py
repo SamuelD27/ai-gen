@@ -306,14 +306,15 @@ def main():
         import numpy as np
         img_array = np.zeros((512, 512, 3), dtype=np.uint8)
         img_array[:, :] = [255, 0, 0]  # Red color
-        img = Image.fromarray(img_array)
+        img = Image.fromarray(img_array, mode='RGB')
 
         img_bytes = io.BytesIO()
-        img.save(img_bytes, format='JPEG')
+        # Use PNG instead of JPEG to avoid PIL JPEG encoder bug in some versions
+        img.save(img_bytes, format='PNG')
         img_bytes.seek(0)
 
         # Upload
-        files = {'file': ('test_image.jpg', img_bytes, 'image/jpeg')}
+        files = {'file': ('test_image.png', img_bytes, 'image/png')}
         resp = requests.post('http://localhost:8000/api/media/upload', files=files, timeout=10)
 
         if resp.status_code == 200:
