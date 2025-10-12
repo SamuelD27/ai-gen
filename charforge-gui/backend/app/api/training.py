@@ -231,14 +231,21 @@ async def start_training(
     current_user: User = Depends(get_current_user_optional)
 ):
     """Start training for a character."""
-    
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"=== TRAINING REQUEST RECEIVED ===")
+    logger.info(f"Character ID: {character_id}")
+    logger.info(f"User ID: {current_user.id}")
+    logger.info(f"Request data: steps={request.steps}, batch_size={request.batch_size}, learning_rate={request.learning_rate}")
+
     # Get character
     character = db.query(Character).filter(
         Character.id == character_id,
         Character.user_id == current_user.id
     ).first()
-    
+
     if not character:
+        logger.error(f"Character {character_id} not found for user {current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Character not found"
@@ -249,49 +256,60 @@ async def start_training(
         TrainingSession.character_id == character_id,
         TrainingSession.status.in_(["pending", "running"])
     ).first()
-    
+
     if existing_session:
+        logger.warning(f"Training already in progress for character {character_id}, session {existing_session.id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Training session already in progress"
         )
 
     # Enhanced validation for training parameters
+    logger.info("Validating training parameters...")
     steps = request.steps or 800
     learning_rate = request.learning_rate or 8e-4
     batch_size = request.batch_size or 1
     rank_dim = request.rank_dim or 8
     train_dim = request.train_dim or 512
-    
+
+    logger.info(f"Parsed values: steps={steps}, lr={learning_rate}, batch={batch_size}, rank={rank_dim}, train_dim={train_dim}")
+
     if steps < 100 or steps > 10000:
+        logger.error(f"Invalid steps: {steps}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Steps must be between 100 and 10000"
         )
 
     if learning_rate < 1e-6 or learning_rate > 1e-2:
+        logger.error(f"Invalid learning rate: {learning_rate}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Learning rate must be between 1e-6 and 1e-2"
         )
 
     if batch_size < 1 or batch_size > 16:
+        logger.error(f"Invalid batch size: {batch_size}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Batch size must be between 1 and 16"
         )
 
     if rank_dim < 4 or rank_dim > 256:
+        logger.error(f"Invalid rank dimension: {rank_dim}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Rank dimension must be between 4 and 256"
         )
 
     if train_dim < 256 or train_dim > 2048:
+        logger.error(f"Invalid train dimension: {train_dim}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Train dimension must be between 256 and 2048"
         )
+
+    logger.info("✓ All training parameters validated successfully")
 
     # Validate model configuration if provided
     if request.model_config:
