@@ -8,6 +8,7 @@ from pathlib import Path
 
 from app.core.database import get_db, Character, TrainingSession, User
 from app.core.auth import get_current_active_user, get_current_user_optional
+from app.core.config import settings
 from app.services.charforge_integration import CharForgeIntegration, CharacterConfig
 from app.services.settings_service import get_user_env_vars
 
