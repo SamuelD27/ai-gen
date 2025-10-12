@@ -358,74 +358,117 @@ async def run_training_background(
     user_id: int
 ):
     """Background task to run training."""
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"=== STARTING TRAINING ===")
+    logger.info(f"Session ID: {session_id}")
+    logger.info(f"Character: {character.name} (ID: {character.id})")
+    logger.info(f"User ID: {user_id}")
+    logger.info(f"Dataset ID: {character.dataset_id}")
+    logger.info(f"Input image: {character.input_image_path}")
+
     db = next(get_db())
-    
+
     try:
         # Update session status
         session = db.query(TrainingSession).filter(TrainingSession.id == session_id).first()
         session.status = "running"
         session.started_at = datetime.utcnow()
         db.commit()
-        
+        logger.info(f"✓ Session status updated to 'running'")
+
         # Update character status
         character.status = "training"
         db.commit()
+        logger.info(f"✓ Character status updated to 'training'")
         
         # Get user environment variables
+        logger.info("Getting user environment variables...")
         env_vars = await get_user_env_vars(user_id, db)
+        logger.info(f"✓ Environment variables loaded")
 
         # Prepare input images
+        logger.info("Preparing input images...")
         input_images = []
         if character.dataset_id:
+            logger.info(f"Loading images from dataset {character.dataset_id}")
             # Get images from dataset
             from app.core.database import DatasetImage
             dataset_images = db.query(DatasetImage).filter(
                 DatasetImage.dataset_id == character.dataset_id
             ).all()
+            logger.info(f"Found {len(dataset_images)} images in dataset")
 
             # Get paths to actual image files
             user_media_dir = settings.MEDIA_DIR / str(user_id)
+            logger.info(f"User media directory: {user_media_dir}")
             input_images = [str(user_media_dir / img.filename) for img in dataset_images]
+
+            # Verify files exist
+            existing_images = [img for img in input_images if Path(img).exists()]
+            logger.info(f"✓ {len(existing_images)}/{len(input_images)} images found on disk")
 
             if not input_images:
                 raise ValueError(f"No images found in dataset {character.dataset_id}")
+            if len(existing_images) < len(input_images):
+                logger.warning(f"Some images are missing: {len(input_images) - len(existing_images)} files not found")
+
         elif character.input_image_path:
+            logger.info(f"Using single image: {character.input_image_path}")
             # Single image training
             input_images = [character.input_image_path]
+            if not Path(character.input_image_path).exists():
+                raise ValueError(f"Input image not found: {character.input_image_path}")
         else:
             raise ValueError("Character has no input images or dataset")
 
+        logger.info(f"✓ Prepared {len(input_images)} images for training")
+
         # Create CharForge config
-        config = CharacterConfig(
-            name=character.name,
-            input_image=input_images[0] if len(input_images) == 1 else None,
-            input_images=input_images if len(input_images) > 1 else None,
-            work_dir=character.work_dir,
-            steps=request.steps or 800,
-            batch_size=request.batch_size or 1,
-            learning_rate=request.learning_rate or 8e-4,
-            train_dim=request.train_dim or 512,
-            rank_dim=request.rank_dim or 8,
-            pulidflux_images=request.pulidflux_images or 0,
+        logger.info("Creating training configuration...")
+        try:
+            config = CharacterConfig(
+                name=character.name,
+                input_image=input_images[0] if len(input_images) == 1 else None,
+                input_images=input_images if len(input_images) > 1 else None,
+                work_dir=character.work_dir,
+                steps=request.steps or 800,
+                batch_size=request.batch_size or 1,
+                learning_rate=request.learning_rate or 8e-4,
+                train_dim=request.train_dim or 512,
+                rank_dim=request.rank_dim or 8,
+                pulidflux_images=request.pulidflux_images or 0,
 
-            # Model configuration
-            model_config=request.model_config or ModelConfig(),
-            mv_adapter_config=request.mv_adapter_config or MVAdapterConfig(),
-            advanced_config=request.advanced_config or AdvancedTrainingConfig(),
+                # Model configuration
+                model_config=request.model_config or ModelConfig(),
+                mv_adapter_config=request.mv_adapter_config or MVAdapterConfig(),
+                advanced_config=request.advanced_config or AdvancedTrainingConfig(),
 
-            # ComfyUI model paths
-            comfyui_checkpoint=request.comfyui_checkpoint or "",
-            comfyui_vae=request.comfyui_vae or "",
-            comfyui_lora=request.comfyui_lora or ""
-        )
-        
+                # ComfyUI model paths
+                comfyui_checkpoint=request.comfyui_checkpoint or "",
+                comfyui_vae=request.comfyui_vae or "",
+                comfyui_lora=request.comfyui_lora or ""
+            )
+            logger.info(f"✓ Configuration created:")
+            logger.info(f"  Steps: {config.steps}")
+            logger.info(f"  Batch size: {config.batch_size}")
+            logger.info(f"  Learning rate: {config.learning_rate}")
+            logger.info(f"  Train dim: {config.train_dim}")
+            logger.info(f"  Work dir: {config.work_dir}")
+        except Exception as e:
+            logger.error(f"Failed to create config: {e}")
+            raise
+
         # Progress callback
         def update_progress(progress: float, message: str):
+            logger.info(f"Training progress: {progress:.1f}% - {message}")
             session.progress = progress
             db.commit()
-        
+
         # Run training
+        logger.info("Starting CharForge training process...")
         result = await charforge.run_training(config, env_vars, update_progress)
+        logger.info(f"Training completed with result: {result}")
         
         # Update session with results
         session.status = "completed" if result["success"] else "failed"
@@ -440,15 +483,32 @@ async def run_training_background(
         db.commit()
         
     except Exception as e:
-        # Handle errors
+        # Handle errors with detailed logging
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+
+        error_details = traceback.format_exc()
+        logger.error(f"Training failed for session {session_id}: {str(e)}")
+        logger.error(f"Full traceback:\n{error_details}")
+
         session = db.query(TrainingSession).filter(TrainingSession.id == session_id).first()
-        session.status = "failed"
-        session.completed_at = datetime.utcnow()
-        
-        character.status = "failed"
-        
+        if session:
+            session.status = "failed"
+            session.completed_at = datetime.utcnow()
+            # Store error message in session (we'll add this field to the model)
+            logger.error(f"Error type: {type(e).__name__}, Message: {str(e)}")
+
+        # Update character status
+        char = db.query(Character).filter(Character.id == character.id).first()
+        if char:
+            char.status = "failed"
+
         db.commit()
-    
+
+        # Re-raise the exception so it appears in logs
+        raise
+
     finally:
         db.close()
 
