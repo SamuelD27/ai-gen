@@ -24,29 +24,40 @@ MASUKA is a production-ready AI generation platform that combines cutting-edge i
 
 ### ✨ Key Features
 
-- **🖼️ Image Generation**
+- **🖼️ Direct Image Generation** _(NEW in v2.1!)_
+  - Generate images **instantly** with no training required
   - Flux.1 Dev & Schnell (best-in-class quality)
-  - Stable Diffusion 3.5 Large
-  - Superior text rendering and composition
-  - Perfect hand generation
+  - Stable Diffusion 3.5 Large & Medium
+  - Playground v2.5 (highly aesthetic)
+  - SDXL Base
+  - Full parameter control (steps, guidance, dimensions, seed)
+  - Quick presets for common use cases
+  - Negative prompts for precise control
+  - Batch generation (up to 4 images)
 
-- **🎬 Video Generation** *(New!)*
-  - Sora 2 integration
+- **🎬 Video Generation**
+  - Sora 2 integration (via CometAPI)
   - Google VEO3 support
   - Runway Gen-4 API
   - Up to 60 seconds of high-quality video
+  - Multiple aspect ratios and frame rates
 
-- **🎯 LoRA Training**
-  - Fast training (1000-2000 steps)
+- **🎯 Custom LoRA Training**
+  - Fast training (800-2000 steps)
   - Automatic dataset curation
   - AI-powered captioning (BLIP-2, Florence-2)
   - 20-30 images for optimal results
+  - Compatible with all base models
 
-- **🎨 Professional UI**
-  - Modern, responsive design
-  - Real-time progress tracking
+- **🎨 Professional Web Interface**
+  - Modern Vue 3 + TypeScript UI
+  - Real-time generation progress
+  - Interactive model selection
+  - Generation history with metadata
+  - Fullscreen image viewer
+  - One-click downloads
+  - GPU memory monitoring
   - Drag-and-drop uploads
-  - Comprehensive media management
 
 - **☁️ Cloud Ready**
   - Google Colab optimized
