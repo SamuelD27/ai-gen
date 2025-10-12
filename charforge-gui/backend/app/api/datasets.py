@@ -40,6 +40,9 @@ class DatasetResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    class Config:
+        from_attributes = True
+
 class DatasetImageResponse(BaseModel):
     id: int
     filename: str
@@ -47,6 +50,9 @@ class DatasetImageResponse(BaseModel):
     caption: Optional[str]
     processed: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class DatasetListResponse(BaseModel):
     datasets: List[DatasetResponse]
