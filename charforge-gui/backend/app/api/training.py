@@ -229,6 +229,54 @@ async def get_character(
     
     return character
 
+@router.delete("/characters/{character_id}")
+async def delete_character(
+    character_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Delete a character and cancel any active training sessions."""
+    import shutil
+
+    # Get character
+    character = db.query(Character).filter(
+        Character.id == character_id,
+        Character.user_id == current_user.id
+    ).first()
+
+    if not character:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Character not found"
+        )
+
+    # Cancel any active training sessions for this character
+    active_sessions = db.query(TrainingSession).filter(
+        TrainingSession.character_id == character_id,
+        TrainingSession.status.in_(["pending", "running"])
+    ).all()
+
+    for session in active_sessions:
+        session.status = "cancelled"
+        session.completed_at = datetime.utcnow()
+
+    # Delete work directory if it exists
+    work_dir = Path(character.work_dir)
+    if work_dir.exists():
+        try:
+            shutil.rmtree(work_dir)
+        except Exception as e:
+            # Log but don't fail if directory cleanup fails
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to delete work directory {work_dir}: {e}")
+
+    # Delete character record
+    db.delete(character)
+    db.commit()
+
+    return {"message": "Character deleted successfully", "character_id": character_id}
+
 @router.post("/characters/{character_id}/train", response_model=TrainingResponse)
 async def start_training(
     character_id: int,

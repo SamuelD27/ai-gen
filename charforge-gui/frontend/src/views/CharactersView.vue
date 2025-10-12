@@ -258,13 +258,12 @@ const duplicateCharacter = async (character: Character) => {
 }
 
 const deleteCharacter = async (character: Character) => {
-  if (!confirm(`Are you sure you want to delete "${character.name}"? This action cannot be undone.`)) {
+  if (!confirm(`Are you sure you want to delete "${character.name}"? This will also cancel any active training sessions and delete all associated files. This action cannot be undone.`)) {
     return
   }
 
   try {
-    // Note: You'll need to implement delete endpoint in the API
-    // await charactersApi.delete(character.id)
+    await charactersApi.delete(character.id)
 
     characters.value = characters.value.filter(c => c.id !== character.id)
     selectedCharacter.value = null

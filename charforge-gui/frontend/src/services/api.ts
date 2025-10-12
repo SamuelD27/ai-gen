@@ -109,16 +109,19 @@ export interface MediaFile {
 export const charactersApi = {
   list: (): Promise<Character[]> =>
     api.get('/training/characters').then(res => res.data),
-  
+
   create: (data: { name: string; input_image_path?: string; dataset_id?: number; trigger_word?: string }): Promise<Character> =>
     api.post('/training/characters', data).then(res => res.data),
-  
+
   get: (id: number): Promise<Character> =>
     api.get(`/training/characters/${id}`).then(res => res.data),
-  
+
+  delete: (id: number): Promise<{ message: string; character_id: number }> =>
+    api.delete(`/training/characters/${id}`).then(res => res.data),
+
   getInfo: (id: number): Promise<any> =>
     api.get(`/inference/characters/${id}/info`).then(res => res.data),
-  
+
   getAvailable: (): Promise<any[]> =>
     api.get('/inference/available-characters').then(res => res.data),
 }
@@ -136,6 +139,9 @@ export const trainingApi = {
 
   getTrainingSession: (sessionId: number): Promise<TrainingSession> =>
     api.get(`/training/training/${sessionId}`).then(res => res.data),
+
+  cancelTraining: (sessionId: number): Promise<{ message: string; session_id: number }> =>
+    api.post(`/training/training/${sessionId}/cancel`).then(res => res.data),
 }
 
 // Models API

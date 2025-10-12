@@ -74,6 +74,15 @@
                   View Logs
                 </Button>
                 <Button
+                  v-if="session.status === 'pending' || session.status === 'running'"
+                  @click="cancelTraining(session)"
+                  variant="destructive"
+                  size="sm"
+                >
+                  <X class="mr-2 h-3 w-3" />
+                  Cancel Training
+                </Button>
+                <Button
                   v-if="session.status === 'completed'"
                   @click="$router.push(`/inference?character=${session.character_id}`)"
                   size="sm"
@@ -293,6 +302,25 @@ const viewLogs = (session: TrainingSession) => {
   selectedSession.value = session
   logs.value = `Training logs for ${session.character_name}...\n\nThis feature will show real-time training logs.`
   showLogs.value = true
+}
+
+const cancelTraining = async (session: TrainingSession) => {
+  if (!confirm(`Are you sure you want to cancel training for "${session.character_name}"?`)) {
+    return
+  }
+
+  try {
+    await trainingApi.cancelTraining(session.id)
+    toast.success('Training cancelled successfully!')
+
+    // Update the session status locally
+    session.status = 'cancelled'
+
+    // Reload sessions to get fresh data
+    await loadTrainingSessions()
+  } catch (error: any) {
+    toast.error(error.response?.data?.detail || 'Failed to cancel training')
+  }
 }
 
 const formatDate = (dateString: string | null): string => {
