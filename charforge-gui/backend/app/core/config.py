@@ -53,12 +53,16 @@ class Settings(BaseSettings):
     CHARFORGE_SCRATCH_DIR: Path = CHARFORGE_ROOT / "scratch"
     COMFYUI_PATH: str = str(BASE_DIR / "ComfyUI")  # Default ComfyUI path
 
-    # Environment Variables for CharForge
+    # Environment Variables for MASUKA
     HF_TOKEN: str = ""
     HF_HOME: str = ""
     CIVITAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""
     FAL_KEY: str = ""
+
+    # Video Generation APIs
+    COMET_API_KEY: str = ""  # CometAPI for Sora 2, VEO3, Runway
+    OPENAI_API_KEY: str = ""  # Direct OpenAI Sora access
     
     # Training Defaults
     DEFAULT_STEPS: int = 800
