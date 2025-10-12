@@ -625,3 +625,47 @@ async def get_all_training_sessions(
         result.append(session_dict)
 
     return result
+
+@router.post("/training/{session_id}/cancel")
+async def cancel_training_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
+):
+    """Cancel a stuck or running training session."""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    session = db.query(TrainingSession).filter(
+        TrainingSession.id == session_id,
+        TrainingSession.user_id == current_user.id
+    ).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Training session not found"
+        )
+
+    if session.status in ["completed", "failed"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel session with status: {session.status}"
+        )
+
+    logger.info(f"Cancelling training session {session_id} (status: {session.status})")
+
+    # Update session status
+    session.status = "failed"
+    session.completed_at = datetime.utcnow()
+
+    # Update character status
+    character = db.query(Character).filter(Character.id == session.character_id).first()
+    if character and character.status == "training":
+        character.status = "failed"
+
+    db.commit()
+
+    logger.info(f"✓ Training session {session_id} cancelled")
+
+    return {"message": "Training session cancelled", "session_id": session_id}
