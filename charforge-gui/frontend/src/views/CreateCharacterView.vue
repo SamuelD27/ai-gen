@@ -52,14 +52,14 @@
 
             <!-- Trigger Word -->
             <div>
-              <label class="block text-sm font-medium mb-2">Trigger Word</label>
+              <label class="block text-sm font-medium mb-2">Trigger Word (Optional)</label>
               <Input
                 v-model="form.triggerWord"
-                placeholder="e.g., ohwx person, mychar"
+                placeholder="e.g., ohwx, mychar (leave empty for default)"
                 class="w-full"
               />
               <p class="text-xs text-muted-foreground mt-1">
-                The word that will activate your character in prompts
+                Optional: The word that will activate your character in prompts. If left empty, defaults to character name.
               </p>
             </div>
           </div>
@@ -525,27 +525,63 @@ const availableTrainers = ref([])
 const selectedTrainer = ref('lora')
 
 const canCreate = computed(() => {
-  return form.value.name.trim() && form.value.triggerWord.trim() &&
-         (selectedImage.value || form.value.datasetId) &&
-         validateTrainingParameters()
+  // Basic validation: name and image required
+  const hasName = form.value.name.trim().length > 0
+  const hasImage = !!(selectedImage.value || form.value.datasetId)
+  const paramsValid = validateTrainingParameters()
+
+  // Debug logging
+  if (!hasName) console.log('❌ Character name is required')
+  if (!hasImage) console.log('❌ Image or dataset is required')
+  if (!paramsValid) console.log('❌ Training parameters validation failed')
+
+  return hasName && hasImage && paramsValid
 })
 
 const validateTrainingParameters = () => {
   // Validate basic parameters
-  if (form.value.steps < 100 || form.value.steps > 10000) return false
-  if (form.value.learning_rate < 0.0001 || form.value.learning_rate > 0.01) return false
-  if (form.value.batch_size < 1 || form.value.batch_size > 16) return false
-  if (form.value.rank_dim < 4 || form.value.rank_dim > 256) return false
-  if (form.value.train_dim < 256 || form.value.train_dim > 2048) return false
+  if (form.value.steps < 100 || form.value.steps > 10000) {
+    console.log('❌ Steps out of range:', form.value.steps)
+    return false
+  }
+  if (form.value.learning_rate < 0.0001 || form.value.learning_rate > 0.01) {
+    console.log('❌ Learning rate out of range:', form.value.learning_rate)
+    return false
+  }
+  if (form.value.batch_size < 1 || form.value.batch_size > 16) {
+    console.log('❌ Batch size out of range:', form.value.batch_size)
+    return false
+  }
+  if (form.value.rank_dim < 4 || form.value.rank_dim > 256) {
+    console.log('❌ Rank dim out of range:', form.value.rank_dim)
+    return false
+  }
+  if (form.value.train_dim < 256 || form.value.train_dim > 2048) {
+    console.log('❌ Train dim out of range:', form.value.train_dim)
+    return false
+  }
 
   // Validate MV Adapter if enabled
   if (form.value.mvAdapterConfig.enabled) {
-    if (form.value.mvAdapterConfig.numViews < 4 || form.value.mvAdapterConfig.numViews > 12) return false
-    if (form.value.mvAdapterConfig.guidanceScale < 1.0 || form.value.mvAdapterConfig.guidanceScale > 20.0) return false
-    if (form.value.mvAdapterConfig.height < 512 || form.value.mvAdapterConfig.height > 2048) return false
-    if (form.value.mvAdapterConfig.width < 512 || form.value.mvAdapterConfig.width > 2048) return false
+    if (form.value.mvAdapterConfig.numViews < 4 || form.value.mvAdapterConfig.numViews > 12) {
+      console.log('❌ MV numViews out of range:', form.value.mvAdapterConfig.numViews)
+      return false
+    }
+    if (form.value.mvAdapterConfig.guidanceScale < 1.0 || form.value.mvAdapterConfig.guidanceScale > 20.0) {
+      console.log('❌ MV guidanceScale out of range:', form.value.mvAdapterConfig.guidanceScale)
+      return false
+    }
+    if (form.value.mvAdapterConfig.height < 512 || form.value.mvAdapterConfig.height > 2048) {
+      console.log('❌ MV height out of range:', form.value.mvAdapterConfig.height)
+      return false
+    }
+    if (form.value.mvAdapterConfig.width < 512 || form.value.mvAdapterConfig.width > 2048) {
+      console.log('❌ MV width out of range:', form.value.mvAdapterConfig.width)
+      return false
+    }
   }
 
+  console.log('✅ Training parameters are valid')
   return true
 }
 
@@ -633,7 +669,17 @@ const selectImageFromLibrary = (file: MediaFile) => {
 }
 
 const createCharacter = async () => {
-  if (!canCreate.value) return
+  if (!canCreate.value) {
+    console.log('❌ Cannot create - validation failed')
+    return
+  }
+
+  console.log('✅ Creating character with data:', {
+    name: form.value.name,
+    triggerWord: form.value.triggerWord || form.value.name,
+    hasImage: !!selectedImage.value,
+    datasetId: form.value.datasetId
+  })
 
   isCreating.value = true
   try {
@@ -641,22 +687,32 @@ const createCharacter = async () => {
 
     // If selected image is a File (newly uploaded), upload it first
     if (selectedImage.value instanceof File) {
+      console.log('📤 Uploading new image...')
       const uploadedFile = await mediaApi.upload(selectedImage.value)
       imagePath = uploadedFile.file_path
-    } else {
+      console.log('✅ Image uploaded:', imagePath)
+    } else if (selectedImage.value) {
       // Use existing media file path
       imagePath = (selectedImage.value as MediaFile).file_path
+      console.log('✅ Using existing image:', imagePath)
     }
 
+    // Use trigger word if provided, otherwise use character name
+    const triggerWord = form.value.triggerWord.trim() || form.value.name.trim()
+
     // Create character
+    console.log('📝 Creating character...')
     const character = await charactersApi.create({
-      name: form.value.name,
-      input_image_path: imagePath
+      name: form.value.name.trim(),
+      input_image_path: imagePath,
+      trigger_word: triggerWord
     })
 
+    console.log('✅ Character created:', character)
     toast.success('Character created successfully!')
     router.push(`/characters/${character.id}`)
   } catch (error: any) {
+    console.error('❌ Failed to create character:', error)
     toast.error(error.response?.data?.detail || 'Failed to create character')
   } finally {
     isCreating.value = false

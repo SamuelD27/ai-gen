@@ -251,9 +251,20 @@ const isCreating = ref(false)
 const fileInput = ref<HTMLInputElement>()
 
 const canCreateDataset = computed(() => {
-  return datasetName.value.trim() && 
-         triggerWord.value.trim() && 
-         selectedImages.value.length > 0
+  const hasName = datasetName.value.trim().length > 0
+  const hasTrigger = triggerWord.value.trim().length > 0
+  const hasImages = selectedImages.value.length > 0
+
+  // Debug logging
+  if (!hasName) console.log('❌ Dataset name is required')
+  if (!hasTrigger) console.log('❌ Trigger word is required')
+  if (!hasImages) console.log('❌ At least one image must be selected')
+
+  if (hasName && hasTrigger && hasImages) {
+    console.log('✅ Dataset can be created')
+  }
+
+  return hasName && hasTrigger && hasImages
 })
 
 const toggleImageSelection = (file: MediaFile) => {
@@ -305,7 +316,16 @@ const uploadFiles = async (files: File[]) => {
 }
 
 const createDataset = async () => {
-  if (!canCreateDataset.value) return
+  if (!canCreateDataset.value) {
+    console.log('❌ Cannot create dataset - validation failed')
+    return
+  }
+
+  console.log('✅ Creating dataset with config:', {
+    name: datasetName.value,
+    triggerWord: triggerWord.value,
+    imageCount: selectedImages.value.length
+  })
 
   isCreating.value = true
   try {
@@ -321,11 +341,14 @@ const createDataset = async () => {
       selected_images: selectedImages.value
     }
 
+    console.log('📝 Calling dataset API...')
     await datasetApi.createDataset(datasetConfig)
 
+    console.log('✅ Dataset created successfully')
     toast.success(`Dataset "${datasetName.value}" created successfully!`)
     emit('created', datasetName.value)
   } catch (error: any) {
+    console.error('❌ Failed to create dataset:', error)
     const message = error.response?.data?.detail || 'Failed to create dataset'
     toast.error(message)
   } finally {
