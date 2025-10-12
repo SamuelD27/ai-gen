@@ -44,6 +44,9 @@ class VideoGenerationRequest:
         aspect_ratio: str = "16:9",
         fps: int = 24,
         seed: Optional[int] = None,
+        lora_path: Optional[str] = None,
+        lora_scale: float = 0.8,
+        character_id: Optional[int] = None,
     ):
         self.prompt = prompt
         self.provider = provider
@@ -53,6 +56,9 @@ class VideoGenerationRequest:
         self.aspect_ratio = aspect_ratio
         self.fps = fps
         self.seed = seed
+        self.lora_path = lora_path
+        self.lora_scale = max(0.0, min(lora_scale, 2.0))
+        self.character_id = character_id
 
 
 class VideoGenerationResult:

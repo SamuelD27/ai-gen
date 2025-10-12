@@ -103,37 +103,43 @@ class MasukaSetup:
         else:
             print_warning("Not running in Colab - some features may not work")
 
-        total_steps = 10
+        total_steps = 12
 
         try:
             print_step(1, total_steps, "Checking GPU")
             self._check_gpu()
 
-            print_step(2, total_steps, "Cloning repository")
+            print_step(2, total_steps, "Setting up persistent storage")
+            self._setup_persistent_storage()
+
+            print_step(3, total_steps, "Cloning repository")
             self._clone_repo()
 
-            print_step(3, total_steps, "Installing Node.js")
+            print_step(4, total_steps, "Installing Node.js")
             self._install_nodejs()
 
-            print_step(4, total_steps, "Installing Python dependencies")
+            print_step(5, total_steps, "Installing Python dependencies")
             self._install_python_deps()
 
-            print_step(5, total_steps, "Installing frontend dependencies")
+            print_step(6, total_steps, "Installing frontend dependencies")
             self._install_frontend_deps()
 
-            print_step(6, total_steps, "Configuring environment")
+            print_step(7, total_steps, "Configuring environment")
             self._setup_environment()
 
-            print_step(7, total_steps, "Setting up ngrok")
+            print_step(8, total_steps, "Migrating database")
+            self._migrate_database()
+
+            print_step(9, total_steps, "Setting up ngrok")
             self._setup_ngrok()
 
-            print_step(8, total_steps, "Starting services")
+            print_step(10, total_steps, "Starting services")
             self._start_services()
 
-            print_step(9, total_steps, "Running health checks")
+            print_step(11, total_steps, "Running health checks")
             self._run_health_checks()
 
-            print_step(10, total_steps, "Creating ngrok tunnel")
+            print_step(12, total_steps, "Creating ngrok tunnel")
             self._create_tunnel()
 
             self._print_success_message()
@@ -160,6 +166,56 @@ class MasukaSetup:
                 print_success("GPU: V100 (16GB VRAM)")
             else:
                 print_info("GPU detected")
+
+    def _setup_persistent_storage(self):
+        """Setup Google Drive persistent storage for Colab"""
+        if not self.is_colab:
+            print_info("Not in Colab, skipping persistent storage setup")
+            return
+
+        print_info("Setting up persistent storage with Google Drive...")
+
+        try:
+            from google.colab import drive
+
+            # Check if already mounted
+            if not os.path.exists('/content/drive'):
+                print_info("Mounting Google Drive...")
+                drive.mount('/content/drive', force_remount=False)
+                print_success("Google Drive mounted")
+            else:
+                print_success("Google Drive already mounted")
+
+            # Create persistent directory structure
+            persist_base = Path('/content/drive/MyDrive/CharForgeData')
+            persist_base.mkdir(exist_ok=True)
+
+            # Create subdirectories
+            directories = {
+                'models': persist_base / 'models',
+                'loras': persist_base / 'loras',
+                'datasets': persist_base / 'datasets',
+                'media': persist_base / 'media',
+                'results': persist_base / 'results',
+                'database': persist_base / 'database',
+                'generated': persist_base / 'generated',
+                'videos': persist_base / 'videos'
+            }
+
+            for name, path in directories.items():
+                path.mkdir(exist_ok=True, parents=True)
+                print_success(f"Created: {name} -> {path}")
+
+            # Store paths for later use
+            self.persist_dirs = directories
+
+            print_success("Persistent storage configured")
+            print_info("Your data will be saved to Google Drive and persist across sessions")
+
+        except Exception as e:
+            print_warning(f"Could not setup persistent storage: {e}")
+            print_info("Data will be saved locally (will be lost when session ends)")
+            self.persist_dirs = {}
 
     def _clone_repo(self):
         """Clone or update repository"""
@@ -427,6 +483,17 @@ class MasukaSetup:
         """Configure environment variables"""
         print_info("Setting up environment variables...")
 
+        # Use persistent storage paths if available
+        media_dir = str(self.persist_dirs.get('media', self.config.repo_dir / 'media'))
+        results_dir = str(self.persist_dirs.get('results', self.config.repo_dir / 'results'))
+        lora_dir = str(self.persist_dirs.get('loras', self.config.repo_dir / 'loras'))
+
+        # Database path - use Google Drive if available
+        if hasattr(self, 'persist_dirs') and 'database' in self.persist_dirs:
+            db_path = self.persist_dirs['database'] / 'masuka.db'
+        else:
+            db_path = self.config.repo_dir / 'charforge-gui/backend/masuka.db'
+
         env_vars = {
             'HF_TOKEN': self.config.hf_token,
             'HF_HOME': '/content/.cache/huggingface',
@@ -454,15 +521,71 @@ class MasukaSetup:
         with open(backend_env, 'w') as f:
             f.write("# MASUKA Backend Configuration\n")
             f.write("SECRET_KEY=masuka-production-key-change-this-in-real-deployment\n")
-            f.write("DATABASE_URL=sqlite:///./masuka.db\n")
+            f.write(f"DATABASE_URL=sqlite:///{db_path}\n")
             f.write("ENABLE_AUTH=false\n")
             f.write("ALLOW_REGISTRATION=false\n")
             f.write("ENVIRONMENT=development\n")
             f.write(f"COMFYUI_PATH={self.config.repo_dir}/ComfyUI\n")
+            f.write(f"MEDIA_DIR={media_dir}\n")
+            f.write(f"RESULTS_DIR={results_dir}\n")
+            f.write(f"LORA_OUTPUT_DIR={lora_dir}\n")
             for key, value in env_vars.items():
                 f.write(f"{key}={value}\n")
 
+        # Create symlinks to persistent storage (if available)
+        if hasattr(self, 'persist_dirs') and self.persist_dirs:
+            print_info("Creating symlinks to persistent storage...")
+
+            # Create media symlink
+            local_media = self.config.repo_dir / 'media'
+            if not local_media.exists() and 'media' in self.persist_dirs:
+                try:
+                    local_media.symlink_to(self.persist_dirs['media'])
+                    print_success(f"Linked media -> {self.persist_dirs['media']}")
+                except Exception as e:
+                    print_warning(f"Could not create media symlink: {e}")
+
+            # Create results symlink
+            local_results = self.config.repo_dir / 'results'
+            if not local_results.exists() and 'results' in self.persist_dirs:
+                try:
+                    local_results.symlink_to(self.persist_dirs['results'])
+                    print_success(f"Linked results -> {self.persist_dirs['results']}")
+                except Exception as e:
+                    print_warning(f"Could not create results symlink: {e}")
+
         print_success("Environment configured")
+
+    def _migrate_database(self):
+        """Run database migrations to update schema"""
+        print_info("Running database migrations...")
+
+        backend_dir = self.config.repo_dir / "charforge-gui/backend"
+        os.chdir(backend_dir)
+
+        try:
+            # Import database models to trigger table creation/migration
+            sys.path.insert(0, str(backend_dir))
+
+            from app.core.database import Base, engine
+            from app.core import database  # Import to ensure all models are loaded
+
+            # Create/update all tables based on current models
+            print_info("Creating/updating database tables...")
+            Base.metadata.create_all(bind=engine)
+
+            print_success("Database migration complete")
+            print_info("New columns added: Character.dataset_id, Character.trigger_word")
+            print_info("Modified: Character.input_image_path (now nullable)")
+
+        except Exception as e:
+            print_error(f"Database migration failed: {e}")
+            print_warning("This is non-fatal, continuing setup...")
+            import traceback
+            traceback.print_exc()
+
+        finally:
+            os.chdir(self.config.repo_dir)
 
     def _setup_ngrok(self):
         """Configure ngrok for tunneling"""

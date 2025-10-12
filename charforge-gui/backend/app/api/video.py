@@ -35,6 +35,8 @@ class VideoGenerationRequest(BaseModel):
     aspect_ratio: str = Field(default="16:9", description="Aspect ratio")
     fps: int = Field(default=24, ge=24, le=60, description="Frames per second")
     seed: Optional[int] = Field(default=None, description="Random seed for reproducibility")
+    character_id: Optional[int] = Field(default=None, description="Character ID to use trained LoRA from")
+    lora_scale: float = Field(default=0.8, ge=0.0, le=2.0, description="LoRA influence strength")
 
 
 class VideoGenerationResponse(BaseModel):
@@ -117,6 +119,38 @@ async def generate_video(
                 detail=f"Invalid resolution: {request.resolution}. Supported: 480p, 720p, 1080p, 2160p"
             )
 
+        # Get LoRA path if character_id is provided
+        lora_path = None
+        if request.character_id:
+            from app.core.database import Character
+            character = db.query(Character).filter(
+                Character.id == request.character_id,
+                Character.user_id == current_user.id
+            ).first()
+
+            if not character:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Character {request.character_id} not found"
+                )
+
+            if character.status != "completed":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Character training not completed (status: {character.status})"
+                )
+
+            # Find the LoRA model file
+            from pathlib import Path
+            work_dir = Path(character.work_dir)
+            lora_files = list(work_dir.glob("*.safetensors"))
+
+            if lora_files:
+                lora_path = str(lora_files[0])
+                logger.info(f"Using LoRA from character {character.name}: {lora_path}")
+            else:
+                logger.warning(f"No LoRA file found for character {character.name}")
+
         # Create service request
         service_request = ServiceVideoRequest(
             prompt=request.prompt,
@@ -126,7 +160,10 @@ async def generate_video(
             motion_intensity=request.motion_intensity,
             aspect_ratio=request.aspect_ratio,
             fps=request.fps,
-            seed=request.seed
+            seed=request.seed,
+            lora_path=lora_path,
+            lora_scale=request.lora_scale,
+            character_id=request.character_id
         )
 
         # Generate video
