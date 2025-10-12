@@ -302,8 +302,12 @@ def main():
     # Test 4: Media upload
     print("\n4️⃣ Testing media upload...")
     try:
-        # Create test image
-        img = Image.new('RGB', (512, 512), (255, 0, 0))  # Red color as RGB tuple
+        # Create test image using numpy for better compatibility
+        import numpy as np
+        img_array = np.zeros((512, 512, 3), dtype=np.uint8)
+        img_array[:, :] = [255, 0, 0]  # Red color
+        img = Image.fromarray(img_array)
+
         img_bytes = io.BytesIO()
         img.save(img_bytes, format='JPEG')
         img_bytes.seek(0)
@@ -331,7 +335,9 @@ def main():
             print(f"      Response: {resp.text}")
             test_results['upload'] = False
     except Exception as e:
+        import traceback
         print(f"   ❌ Upload test failed: {e}")
+        print(f"   📋 Traceback: {traceback.format_exc()}")
         test_results['upload'] = False
 
     # Test 5: Media list
