@@ -10,6 +10,9 @@ def _parse_bool_env(var_name: str, default: str = "false") -> bool:
     return str(val).strip().lower() in {"1", "true", "yes", "on"}
 
 class Settings(BaseSettings):
+    # Environment
+    ENVIRONMENT: str = "development"  # development, staging, production
+
     # API Configuration
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production-min-32-chars")
     ALGORITHM: str = "HS256"

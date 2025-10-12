@@ -1,0 +1,143 @@
+# MASUKA - Unified Requirements
+# Production-ready AI generation platform
+# Compatible with Google Colab + PyTorch 2.5.0
+
+# ============================================================================
+# CORE DEEP LEARNING
+# ============================================================================
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+xformers==0.0.28.post3  # Memory-efficient attention
+
+# ============================================================================
+# AI/ML FRAMEWORKS
+# ============================================================================
+diffusers==0.33.1  # Latest with Flux.1 full support
+transformers==4.48.0
+accelerate==1.2.1
+safetensors==0.4.5
+peft==0.14.0  # LoRA training
+bitsandbytes==0.45.0
+
+# ============================================================================
+# IMAGE PROCESSING
+# ============================================================================
+pillow==11.0.0  # Compatible with PyTorch 2.5.0
+opencv-python==4.10.0.84
+imageio==2.36.1
+imageio-ffmpeg==0.5.1
+scikit-image==0.24.0
+albumentations==1.4.22  # Advanced augmentation
+
+# ============================================================================
+# VIDEO GENERATION (NEW!)
+# ============================================================================
+moviepy==1.0.3
+av==13.1.0  # PyAV for video encoding
+
+# ============================================================================
+# AI MODELS & APIS
+# ============================================================================
+# CometAPI for unified video generation access (Sora 2, VEO3, Runway)
+httpx==0.28.1  # Modern async HTTP client
+openai==1.58.1  # For future OpenAI integrations
+replicate==1.0.4  # Replicate API for models
+
+# ============================================================================
+# FACE PROCESSING
+# ============================================================================
+insightface==0.7.3
+onnxruntime-gpu==1.20.1  # GPU acceleration for face detection
+
+# ============================================================================
+# CAPTIONING & VISION
+# ============================================================================
+# BLIP-2, Florence-2 support via transformers (already included)
+sentence-transformers==3.3.1  # CLIP embeddings
+open-clip-torch==2.29.0
+
+# ============================================================================
+# WEB FRAMEWORK (Backend)
+# ============================================================================
+fastapi==0.115.5
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20  # File uploads
+aiofiles==24.1.0  # Async file operations
+python-jose[cryptography]==3.3.0  # JWT
+passlib[bcrypt]==1.7.4  # Password hashing
+slowapi==0.1.9  # Rate limiting
+websockets==14.1  # Real-time updates
+
+# ============================================================================
+# DATABASE
+# ============================================================================
+sqlalchemy==2.0.36
+alembic==1.14.0  # Database migrations
+asyncpg==0.30.0  # Async PostgreSQL (optional, for production)
+
+# ============================================================================
+# VALIDATION & CONFIG
+# ============================================================================
+pydantic==2.10.3
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+omegaconf==2.3.0
+pyyaml==6.0.2
+
+# ============================================================================
+# TASK QUEUE (for video generation)
+# ============================================================================
+celery[redis]==5.4.0
+redis==5.2.1
+
+# ============================================================================
+# STORAGE
+# ============================================================================
+boto3==1.35.81  # S3-compatible storage
+google-cloud-storage==2.19.0  # GCS (optional)
+
+# ============================================================================
+# MONITORING & LOGGING
+# ============================================================================
+structlog==24.4.0  # Structured logging
+sentry-sdk[fastapi]==2.19.2  # Error tracking (optional)
+
+# ============================================================================
+# HUGGING FACE
+# ============================================================================
+huggingface-hub[hf-transfer]==0.27.0  # Fast model downloads
+
+# ============================================================================
+# CLOUD PLATFORMS
+# ============================================================================
+runpod==1.7.6  # RunPod integration
+# modal  # Modal.com (install separately if needed)
+
+# ============================================================================
+# CLI & UTILITIES
+# ============================================================================
+click==8.1.8
+tqdm==4.67.1
+rich==13.9.4  # Beautiful terminal output
+typer==0.15.1  # Modern CLI
+
+# ============================================================================
+# NGROK (for Colab)
+# ============================================================================
+pyngrok==7.2.2
+
+# ============================================================================
+# TESTING (optional, install separately in dev)
+# ============================================================================
+# pytest==8.3.4
+# pytest-asyncio==0.24.0
+# pytest-cov==6.0.0
+# httpx-test==0.1.0
+
+# ============================================================================
+# CODE QUALITY (optional, dev only)
+# ============================================================================
+# black==24.10.0
+# ruff==0.8.4
+# mypy==1.13.0
