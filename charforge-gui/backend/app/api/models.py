@@ -39,9 +39,64 @@ class TrainerListResponse(BaseModel):
 async def list_available_models(
     current_user: User = Depends(get_current_user_optional)
 ):
-    """Get all available models from ComfyUI and other sources."""
+    """Get all available models from ComfyUI and HuggingFace."""
 
-    # ComfyUI model paths - use settings
+    # Default HuggingFace models (always available)
+    default_checkpoints = [
+        ModelInfo(
+            name="Flux.1 Dev",
+            path="black-forest-labs/FLUX.1-dev",
+            type="checkpoint",
+            description="Best quality from Black Forest Labs (requires HF token)"
+        ),
+        ModelInfo(
+            name="Flux.1 Schnell",
+            path="black-forest-labs/FLUX.1-schnell",
+            type="checkpoint",
+            description="Fast version of Flux.1"
+        ),
+        ModelInfo(
+            name="SD 3.5 Large",
+            path="stabilityai/stable-diffusion-3.5-large",
+            type="checkpoint",
+            description="Latest Stability AI flagship model"
+        ),
+        ModelInfo(
+            name="SD 3.5 Medium",
+            path="stabilityai/stable-diffusion-3.5-medium",
+            type="checkpoint",
+            description="Balanced SD 3.5 model"
+        ),
+        ModelInfo(
+            name="SDXL Base",
+            path="stabilityai/stable-diffusion-xl-base-1.0",
+            type="checkpoint",
+            description="Stable Diffusion XL base model"
+        ),
+        ModelInfo(
+            name="Playground v2.5",
+            path="playgroundai/playground-v2.5-1024px-aesthetic",
+            type="checkpoint",
+            description="Highly aesthetic SDXL-based model"
+        )
+    ]
+
+    default_vaes = [
+        ModelInfo(
+            name="SDXL VAE FP16",
+            path="madebyollin/sdxl-vae-fp16-fix",
+            type="vae",
+            description="Fixed SDXL VAE for FP16"
+        ),
+        ModelInfo(
+            name="SD 1.5 VAE",
+            path="stabilityai/sd-vae-ft-mse",
+            type="vae",
+            description="Standard SD 1.5 VAE"
+        )
+    ]
+
+    # ComfyUI model paths - use settings (optional)
     comfyui_path = Path(settings.COMFYUI_PATH)
     print(f"🔍 Scanning for models in ComfyUI path: {comfyui_path}")
     print(f"   ComfyUI path exists: {comfyui_path.exists()}")
@@ -50,6 +105,7 @@ async def list_available_models(
         """Scan a directory for model files."""
         models = []
         if not directory.exists():
+            print(f"   Directory does not exist: {directory}")
             return models
             
         for file_path in directory.rglob("*.safetensors"):
@@ -83,14 +139,19 @@ async def list_available_models(
                     
         return models
     
-    # Scan different model directories
-    checkpoints = scan_model_directory(comfyui_path / "models" / "checkpoints", "checkpoint")
-    vaes = scan_model_directory(comfyui_path / "models" / "vae", "vae")
+    # Scan different model directories (ComfyUI local files)
+    comfyui_checkpoints = scan_model_directory(comfyui_path / "models" / "checkpoints", "checkpoint")
+    comfyui_vaes = scan_model_directory(comfyui_path / "models" / "vae", "vae")
     loras = scan_model_directory(comfyui_path / "models" / "loras", "lora")
     controlnets = scan_model_directory(comfyui_path / "models" / "controlnet", "controlnet")
 
-    print(f"   Found {len(checkpoints)} checkpoints, {len(vaes)} VAEs, {len(loras)} LoRAs, {len(controlnets)} ControlNets")
-    
+    print(f"   Found {len(comfyui_checkpoints)} local checkpoints, {len(comfyui_vaes)} local VAEs")
+
+    # Combine ComfyUI models with HuggingFace defaults
+    # Defaults are listed first so they appear at the top of dropdowns
+    checkpoints = default_checkpoints + comfyui_checkpoints
+    vaes = default_vaes + comfyui_vaes
+
     # Add MV adapters
     adapters = []
     mv_adapter_path = Path("./MV_Adapter")
@@ -101,27 +162,8 @@ async def list_available_models(
             type="adapter",
             description="Multi-view adapter for generating multiple viewpoints"
         ))
-    
-    # Add some default HuggingFace models
-    default_models = [
-        ModelInfo(
-            name="Juggernaut XL v9",
-            path="RunDiffusion/Juggernaut-XL-v9",
-            type="checkpoint",
-            description="High-quality SDXL checkpoint"
-        ),
-        ModelInfo(
-            name="SDXL VAE FP16",
-            path="madebyollin/sdxl-vae-fp16-fix",
-            type="vae",
-            description="Fixed SDXL VAE for FP16"
-        ),
-    ]
-    
-    checkpoints.extend([m for m in default_models if m.type == "checkpoint"])
-    vaes.extend([m for m in default_models if m.type == "vae"])
 
-    print(f"   Returning: {len(checkpoints)} checkpoints (including defaults), {len(vaes)} VAEs (including defaults)")
+    print(f"   Returning: {len(checkpoints)} total checkpoints, {len(vaes)} total VAEs, {len(loras)} LoRAs")
 
     return ModelListResponse(
         checkpoints=checkpoints,

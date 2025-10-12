@@ -570,7 +570,7 @@ const loadDatasets = async () => {
 const loadModelsAndConfig = async () => {
   try {
     // Load available models
-    const modelsResponse = await api.get('/models')
+    const modelsResponse = await api.get('/models/models')
     availableModels.value = modelsResponse.data
 
     // Load schedulers
