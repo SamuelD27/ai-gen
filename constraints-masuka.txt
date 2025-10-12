@@ -1,0 +1,6 @@
+# Constraints file for MASUKA
+# This prevents pip from upgrading certain packages during installation
+# Usage: pip install -r requirements-masuka.txt --constraint constraints-masuka.txt
+
+# CRITICAL: Pillow must stay at 10.1.0 for Colab compatibility
+pillow==10.1.0

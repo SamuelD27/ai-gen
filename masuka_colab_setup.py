@@ -223,31 +223,32 @@ class MasukaSetup:
             capture_output=True
         )
 
-        # Install main requirements
-        print_info("Installing main packages...")
-        subprocess.run(
-            [
-                sys.executable, "-m", "pip", "install",
-                "-r", str(requirements_file),
-                "--no-cache-dir"  # Prevent caching issues
-            ],
-            check=True,
-            capture_output=True
-        )
+        # Install main requirements (contains ALL dependencies)
+        # Use constraints file to prevent Pillow from being upgraded
+        print_info("Installing all packages from unified requirements...")
+        constraints_file = self.config.repo_dir / "constraints-masuka.txt"
 
-        # Install backend requirements
-        backend_requirements = self.config.repo_dir / "charforge-gui/backend/requirements.txt"
-        if backend_requirements.exists():
-            print_info("Installing backend packages...")
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", "-r", str(backend_requirements)],
-                check=True,
-                capture_output=True
-            )
+        install_cmd = [
+            sys.executable, "-m", "pip", "install",
+            "-r", str(requirements_file),
+            "--no-cache-dir"  # Prevent caching issues
+        ]
 
-        # NOW fix Pillow version LAST (after everything else)
-        # This ensures nothing upgrades it after we set the correct version
-        print_info("Locking Pillow to 10.1.0 (matching Colab's _imaging extension)...")
+        # Add constraints if file exists
+        if constraints_file.exists():
+            install_cmd.extend(["--constraint", str(constraints_file)])
+            print_info("Using constraints file to lock Pillow version during install")
+
+        subprocess.run(install_cmd, check=True, capture_output=True)
+
+        # IMPORTANT: Do NOT install backend/requirements.txt separately!
+        # It has outdated versions that trigger dependency conflicts and Pillow upgrades.
+        # All required packages are now in requirements-masuka.txt
+
+        # CRITICAL FIX: Force Pillow to 10.1.0 LAST
+        # Some packages (like torchvision, opencv-python) may upgrade Pillow during install
+        # We MUST install Pillow 10.1.0 as the absolute FINAL step with --no-deps
+        print_info("Forcing Pillow to 10.1.0 (matching Colab's _imaging extension)...")
         subprocess.run(
             [
                 sys.executable, "-m", "pip", "uninstall", "-y", "pillow"
