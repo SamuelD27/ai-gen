@@ -47,13 +47,20 @@ rate_limiter = RateLimiter()
 
 async def rate_limit_middleware(request: Request, call_next):
     """Rate limiting middleware."""
+    import os
+
+    # Disable rate limiting in development/Colab environments
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        response = await call_next(request)
+        return response
+
     # Get client identifier (IP address)
     client_ip = request.client.host
-    
+
     # Determine endpoint type
     path = request.url.path
     endpoint_type = "default"
-    
+
     if "/auth/" in path:
         endpoint_type = "auth"
     elif "/media/upload" in path:
@@ -62,7 +69,7 @@ async def rate_limit_middleware(request: Request, call_next):
         endpoint_type = "training"
     elif "/inference/" in path and request.method == "POST":
         endpoint_type = "inference"
-    
+
     # Check rate limit
     if not rate_limiter.is_allowed(client_ip, endpoint_type):
         logger.warning(f"Rate limit exceeded for {client_ip} on {path}")
@@ -70,7 +77,7 @@ async def rate_limit_middleware(request: Request, call_next):
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             content={"detail": "Rate limit exceeded. Please try again later."}
         )
-    
+
     response = await call_next(request)
     return response
 

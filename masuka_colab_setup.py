@@ -336,8 +336,75 @@ class MasukaSetup:
         if not all_ok:
             raise RuntimeError("Package verification failed - check versions above")
 
+    def _install_nodejs(self):
+        """Install Node.js 20+ for frontend"""
+        print_info("Checking Node.js version...")
+
+        try:
+            result = subprocess.run(
+                ["node", "--version"],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            current_version = result.stdout.strip() if result.returncode == 0 else None
+
+            if current_version:
+                print_info(f"Current Node.js version: {current_version}")
+                # Parse version (e.g., v18.17.1 -> 18)
+                major_version = int(current_version.split('.')[0].replace('v', ''))
+
+                if major_version >= 20:
+                    print_success("Node.js 20+ already installed")
+                    return
+
+            print_warning("Node.js 20+ required, installing...")
+
+            # Install Node.js 20 via NodeSource repository
+            subprocess.run(
+                "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
+                shell=True,
+                capture_output=True,
+                check=True
+            )
+
+            subprocess.run(
+                ["sudo", "apt-get", "install", "-y", "nodejs"],
+                capture_output=True,
+                check=True
+            )
+
+            # Verify installation
+            result = subprocess.run(
+                ["node", "--version"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            print_success(f"Node.js installed: {result.stdout.strip()}")
+
+        except Exception as e:
+            print_warning(f"Failed to install Node.js 20+: {e}")
+            print_info("Trying alternative installation method...")
+
+            # Alternative: Install via nvm
+            subprocess.run([
+                "curl", "-o-",
+                "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh",
+                "|", "bash"
+            ], shell=True, capture_output=True)
+
+            # Source nvm and install Node 20
+            subprocess.run([
+                "bash", "-c",
+                "source ~/.nvm/nvm.sh && nvm install 20 && nvm use 20"
+            ], capture_output=True)
+
     def _install_frontend_deps(self):
         """Install frontend dependencies"""
+        # First ensure Node.js 20+ is installed
+        self._install_nodejs()
+
         frontend_dir = self.config.repo_dir / "charforge-gui/frontend"
         os.chdir(frontend_dir)
 
