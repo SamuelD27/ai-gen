@@ -373,17 +373,39 @@ async def run_training_background(
         
         # Get user environment variables
         env_vars = await get_user_env_vars(user_id, db)
-        
+
+        # Prepare input images
+        input_images = []
+        if character.dataset_id:
+            # Get images from dataset
+            from app.core.database import DatasetImage
+            dataset_images = db.query(DatasetImage).filter(
+                DatasetImage.dataset_id == character.dataset_id
+            ).all()
+
+            # Get paths to actual image files
+            user_media_dir = settings.MEDIA_DIR / str(user_id)
+            input_images = [str(user_media_dir / img.filename) for img in dataset_images]
+
+            if not input_images:
+                raise ValueError(f"No images found in dataset {character.dataset_id}")
+        elif character.input_image_path:
+            # Single image training
+            input_images = [character.input_image_path]
+        else:
+            raise ValueError("Character has no input images or dataset")
+
         # Create CharForge config
         config = CharacterConfig(
             name=character.name,
-            input_image=character.input_image_path,
+            input_image=input_images[0] if len(input_images) == 1 else None,
+            input_images=input_images if len(input_images) > 1 else None,
             work_dir=character.work_dir,
-            steps=steps,
-            batch_size=batch_size,
-            learning_rate=learning_rate,
-            train_dim=train_dim,
-            rank_dim=rank_dim,
+            steps=request.steps or 800,
+            batch_size=request.batch_size or 1,
+            learning_rate=request.learning_rate or 8e-4,
+            train_dim=request.train_dim or 512,
+            rank_dim=request.rank_dim or 8,
             pulidflux_images=request.pulidflux_images or 0,
 
             # Model configuration

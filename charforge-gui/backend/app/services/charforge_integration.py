@@ -54,7 +54,8 @@ class AdvancedTrainingConfig:
 class CharacterConfig:
     """Configuration for character generation and training."""
     name: str
-    input_image: str
+    input_image: Optional[str] = None  # Single image path (for single-image training)
+    input_images: Optional[List[str]] = None  # Multiple image paths (for dataset training)
     work_dir: str = None
     steps: int = 800
     batch_size: int = 1
@@ -80,6 +81,10 @@ class CharacterConfig:
             self.mv_adapter_config = MVAdapterConfig()
         if self.advanced_config is None:
             self.advanced_config = AdvancedTrainingConfig()
+
+        # Validate that at least one input is provided
+        if not self.input_image and not self.input_images:
+            raise ValueError("Either input_image or input_images must be provided")
 
 @dataclass
 class InferenceConfig:
