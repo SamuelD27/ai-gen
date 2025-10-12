@@ -78,6 +78,12 @@ def main():
     print("")
     # Step 4: Install Python dependencies
     print("📦 Installing Python dependencies (this may take a few minutes)...\n")
+
+    # Fix Pillow version conflict first
+    print("Fixing Pillow installation...")
+    run_command("pip uninstall -y pillow", "")
+    run_command("pip install --no-cache-dir pillow", "")
+
     run_command("pip install -q -r requirements.txt", "Installing main requirements")
     run_command("pip install -q -r charforge-gui/backend/requirements.txt",
                "Installing GUI backend requirements")
