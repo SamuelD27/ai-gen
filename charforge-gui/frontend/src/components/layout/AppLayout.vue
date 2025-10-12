@@ -65,7 +65,8 @@ import {
   Image,
   Upload,
   Settings,
-  User
+  User,
+  Film
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -76,6 +77,7 @@ const navigation = [
   { name: 'Datasets', href: '/datasets', icon: Database, tourId: 'datasets-link' },
   { name: 'Training', href: '/training', icon: Zap, tourId: 'training-link' },
   { name: 'Inference', href: '/inference', icon: Wand2, tourId: 'inference-link' },
+  { name: 'Video Generation', href: '/video', icon: Film, tourId: 'video-link' },
   { name: 'Gallery', href: '/gallery', icon: Image, tourId: 'gallery-link' },
   { name: 'Media', href: '/media', icon: Upload, tourId: 'media-link' },
   { name: 'Settings', href: '/settings', icon: Settings, tourId: 'settings-link' },

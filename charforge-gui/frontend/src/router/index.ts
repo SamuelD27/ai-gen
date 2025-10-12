@@ -43,6 +43,11 @@ const router = createRouter({
       component: () => import('@/views/GalleryView.vue')
     },
     {
+      path: '/video',
+      name: 'VideoGeneration',
+      component: () => import('@/views/VideoGenerationView.vue')
+    },
+    {
       path: '/media',
       name: 'Media',
       component: () => import('@/views/MediaView.vue')
