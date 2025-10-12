@@ -8,10 +8,14 @@ import shutil
 from pathlib import Path
 import uuid
 from PIL import Image
+import logging
 
 from app.core.database import get_db, User
 from app.core.auth import get_current_active_user, get_current_user_optional
 from app.core.config import settings
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -90,30 +94,49 @@ async def upload_file(
     current_user: User = Depends(get_current_user_optional)
 ):
     """Upload a media file."""
-    
+    logger.info(f"=== UPLOAD REQUEST STARTED ===")
+    logger.info(f"Filename: {file.filename}")
+    logger.info(f"Content type: {file.content_type}")
+    logger.info(f"User ID: {current_user.id}")
+    logger.info(f"MEDIA_DIR: {settings.MEDIA_DIR}")
+    logger.info(f"MEDIA_DIR exists: {settings.MEDIA_DIR.exists()}")
+
     # Validate file
     if not file.filename:
+        logger.error("No filename provided")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No file provided"
         )
-    
+
     if not is_allowed_file(file.filename):
+        logger.error(f"File type not allowed: {file.filename}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
         )
-    
+
     # Stream file directly to disk to avoid memory issues
     user_dir = settings.MEDIA_DIR / str(current_user.id)
-    user_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(f"User directory: {user_dir}")
+    logger.info(f"Creating user directory...")
+
+    try:
+        user_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"User directory created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create user directory: {e}")
+        raise
 
     # Generate unique filename
     unique_filename = generate_unique_filename(file.filename)
     file_path = user_dir / unique_filename
+    logger.info(f"Generated unique filename: {unique_filename}")
+    logger.info(f"Target file path: {file_path}")
 
     # Stream file to disk with size checking
     file_size = 0
+    logger.info("Starting file streaming...")
     try:
         with open(file_path, "wb") as buffer:
             while True:
@@ -125,6 +148,7 @@ async def upload_file(
 
                 # Check size limit during streaming
                 if file_size > MAX_FILE_SIZE:
+                    logger.warning(f"File too large: {file_size} bytes (max: {MAX_FILE_SIZE})")
                     buffer.close()
                     file_path.unlink()  # Delete partial file
                     raise HTTPException(
@@ -133,8 +157,12 @@ async def upload_file(
                     )
 
                 buffer.write(chunk)
+        logger.info(f"File streaming completed. Size: {file_size} bytes")
+    except HTTPException:
+        raise
     except Exception as e:
         # Clean up partial file on error
+        logger.error(f"Error during file streaming: {e}", exc_info=True)
         if file_path.exists():
             file_path.unlink()
         raise HTTPException(
@@ -143,32 +171,52 @@ async def upload_file(
         ) from e
 
     # Validate file content for security (read first chunk for validation)
-    with open(file_path, "rb") as f:
-        first_chunk = f.read(8192)
+    logger.info("Validating file content...")
+    try:
+        with open(file_path, "rb") as f:
+            first_chunk = f.read(8192)
 
-    from app.core.security import validate_file_upload
-    if not validate_file_upload(first_chunk, file.filename):
-        file_path.unlink()  # Delete the file
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file content or potentially malicious file"
-        )
+        from app.core.security import validate_file_upload
+        if not validate_file_upload(first_chunk, file.filename):
+            logger.error("File validation failed")
+            file_path.unlink()  # Delete the file
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid file content or potentially malicious file"
+            )
+        logger.info("File validation passed")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during file validation: {e}", exc_info=True)
+        raise
 
     # Save original filename metadata
+    logger.info("Saving metadata...")
     meta_path = file_path.with_suffix(file_path.suffix + ".meta")
     try:
         with open(meta_path, "w", encoding="utf-8") as meta_file:
             meta_file.write(file.filename)
-    except Exception:
+        logger.info("Metadata saved")
+    except Exception as e:
         # If metadata save fails, continue anyway
+        logger.warning(f"Failed to save metadata: {e}")
         pass
-    
+
     # Get image dimensions
-    width, height = get_image_dimensions(str(file_path))
-    
+    logger.info("Getting image dimensions...")
+    try:
+        width, height = get_image_dimensions(str(file_path))
+        logger.info(f"Image dimensions: {width}x{height}")
+    except Exception as e:
+        logger.error(f"Failed to get dimensions: {e}", exc_info=True)
+        raise
+
     # Create response
     file_url = f"/media/{current_user.id}/{unique_filename}"
-    
+    logger.info(f"Upload successful! File URL: {file_url}")
+    logger.info("=== UPLOAD REQUEST COMPLETED ===")
+
     return MediaResponse(
         filename=unique_filename,
         original_filename=file.filename,

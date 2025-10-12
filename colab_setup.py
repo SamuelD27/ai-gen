@@ -124,6 +124,7 @@ def main():
         f.write("DATABASE_URL=sqlite:///./database.db\n")
         f.write("ENABLE_AUTH=false\n")
         f.write("ALLOW_REGISTRATION=false\n")
+        f.write("ENVIRONMENT=development\n")  # Enable detailed error messages
         f.write("COMFYUI_PATH=/content/ai-gen/ComfyUI\n")
         for key, value in env_vars.items():
             f.write(f"{key}={value}\n")

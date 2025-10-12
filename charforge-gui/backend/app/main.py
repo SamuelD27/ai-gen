@@ -65,10 +65,14 @@ async def global_exception_handler(request: Request, exc: Exception):
             content={"detail": exc.detail}
         )
 
-    # For unexpected errors, return generic message
+    # For unexpected errors, return detailed error message in development
+    error_detail = str(exc)
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        error_detail = f"{type(exc).__name__}: {str(exc)}\n{traceback.format_exc()}"
+
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error"}
+        content={"detail": error_detail}
     )
 
 # Add security middleware
