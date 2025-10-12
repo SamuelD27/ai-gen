@@ -4,9 +4,11 @@
       <div class="space-y-6">
         <!-- Header -->
         <div>
-          <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p class="text-muted-foreground">
-            Welcome to CharForge - AI-Powered Character LoRA Creation
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Welcome to MASUKA
+          </h1>
+          <p class="text-muted-foreground mt-2">
+            Professional AI Image & Video Generation Platform
           </p>
         </div>
 
@@ -46,17 +48,21 @@
           <Card class="p-6">
             <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
             <div class="space-y-3">
-              <Button @click="$router.push('/characters/create')" class="w-full justify-start">
+              <Button @click="$router.push('/generate')" class="w-full justify-start bg-gradient-to-r from-primary via-purple-600 to-pink-600">
+                <Sparkles class="mr-2 h-4 w-4" />
+                Generate Images
+              </Button>
+              <Button @click="$router.push('/video')" variant="outline" class="w-full justify-start">
+                <Film class="mr-2 h-4 w-4" />
+                Generate Video
+              </Button>
+              <Button @click="$router.push('/characters/create')" variant="outline" class="w-full justify-start">
                 <Plus class="mr-2 h-4 w-4" />
-                Create New Character
+                Train Custom LoRA
               </Button>
               <Button @click="$router.push('/media')" variant="outline" class="w-full justify-start">
                 <Upload class="mr-2 h-4 w-4" />
                 Upload Media
-              </Button>
-              <Button @click="$router.push('/inference')" variant="outline" class="w-full justify-start">
-                <Wand2 class="mr-2 h-4 w-4" />
-                Generate Images
               </Button>
             </div>
           </Card>
@@ -81,7 +87,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Plus, Upload, Wand2 } from 'lucide-vue-next'
+import { Plus, Upload, Wand2, Sparkles, Film } from 'lucide-vue-next'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'

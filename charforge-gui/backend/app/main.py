@@ -9,7 +9,7 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.core.security import rate_limit_middleware, security_headers_middleware
-from app.api import auth, training, inference, media, datasets, models, settings as settings_api, video
+from app.api import auth, training, inference, media, datasets, models, settings as settings_api, video, generate
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -94,6 +94,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 
 # Note: The auth router now includes conditional logic for auth-only endpoints
 
+app.include_router(generate.router, prefix="/api/generate", tags=["generation"])
 app.include_router(training.router, prefix="/api/training", tags=["training"])
 app.include_router(inference.router, prefix="/api/inference", tags=["inference"])
 app.include_router(media.router, prefix="/api/media", tags=["media"])

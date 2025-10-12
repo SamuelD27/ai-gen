@@ -66,19 +66,21 @@ import {
   Upload,
   Settings,
   User,
-  Film
+  Film,
+  Sparkles
 } from 'lucide-vue-next'
 
 const route = useRoute()
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, tourId: 'dashboard-link' },
+  { name: 'Generate', href: '/generate', icon: Sparkles, tourId: 'generate-link' },
+  { name: 'Video', href: '/video', icon: Film, tourId: 'video-link' },
   { name: 'Characters', href: '/characters', icon: Users, tourId: 'characters-link' },
-  { name: 'Datasets', href: '/datasets', icon: Database, tourId: 'datasets-link' },
   { name: 'Training', href: '/training', icon: Zap, tourId: 'training-link' },
   { name: 'Inference', href: '/inference', icon: Wand2, tourId: 'inference-link' },
-  { name: 'Video Generation', href: '/video', icon: Film, tourId: 'video-link' },
   { name: 'Gallery', href: '/gallery', icon: Image, tourId: 'gallery-link' },
+  { name: 'Datasets', href: '/datasets', icon: Database, tourId: 'datasets-link' },
   { name: 'Media', href: '/media', icon: Upload, tourId: 'media-link' },
   { name: 'Settings', href: '/settings', icon: Settings, tourId: 'settings-link' },
 ]
