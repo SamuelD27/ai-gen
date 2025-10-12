@@ -459,47 +459,53 @@ async def run_training_background(
         # Create CharForge config
         logger.info("Creating training configuration...")
         try:
+            # Helper function to get value from dict or object
+            def get_attr(obj, key, default=None):
+                if isinstance(obj, dict):
+                    return obj.get(key, default)
+                return getattr(obj, key, default)
+
             # Convert Pydantic models to dataclasses for CharForge
             charforge_model_config = None
             if request.model_config:
                 mc = request.model_config
                 charforge_model_config = CharForgeModelConfig(
-                    base_model=mc.base_model,
-                    vae_model=mc.vae_model,
-                    unet_model=mc.unet_model,
-                    adapter_path=mc.adapter_path,
-                    scheduler=mc.scheduler,
-                    dtype=mc.dtype
+                    base_model=get_attr(mc, 'base_model', 'RunDiffusion/Juggernaut-XL-v9'),
+                    vae_model=get_attr(mc, 'vae_model', 'madebyollin/sdxl-vae-fp16-fix'),
+                    unet_model=get_attr(mc, 'unet_model', None),
+                    adapter_path=get_attr(mc, 'adapter_path', 'huanngzh/mv-adapter'),
+                    scheduler=get_attr(mc, 'scheduler', 'ddpm'),
+                    dtype=get_attr(mc, 'dtype', 'float16')
                 )
 
             charforge_mv_config = None
             if request.mv_adapter_config:
                 mvc = request.mv_adapter_config
                 charforge_mv_config = ChargeForgeMVAdapterConfig(
-                    enabled=mvc.enabled,
-                    num_views=mvc.num_views,
-                    height=mvc.height,
-                    width=mvc.width,
-                    guidance_scale=mvc.guidance_scale,
-                    reference_conditioning_scale=mvc.reference_conditioning_scale,
-                    azimuth_degrees=mvc.azimuth_degrees,
-                    remove_background=mvc.remove_background
+                    enabled=get_attr(mvc, 'enabled', False),
+                    num_views=get_attr(mvc, 'num_views', 6),
+                    height=get_attr(mvc, 'height', 768),
+                    width=get_attr(mvc, 'width', 768),
+                    guidance_scale=get_attr(mvc, 'guidance_scale', 3.0),
+                    reference_conditioning_scale=get_attr(mvc, 'reference_conditioning_scale', 1.0),
+                    azimuth_degrees=get_attr(mvc, 'azimuth_degrees', [0, 45, 90, 180, 270, 315]),
+                    remove_background=get_attr(mvc, 'remove_background', True)
                 )
 
             charforge_advanced_config = None
             if request.advanced_config:
                 ac = request.advanced_config
                 charforge_advanced_config = CharForgeAdvancedTrainingConfig(
-                    optimizer=ac.optimizer,
-                    weight_decay=ac.weight_decay,
-                    lr_scheduler=ac.lr_scheduler,
-                    gradient_checkpointing=ac.gradient_checkpointing,
-                    train_text_encoder=ac.train_text_encoder,
-                    noise_scheduler=ac.noise_scheduler,
-                    gradient_accumulation=ac.gradient_accumulation,
-                    mixed_precision=ac.mixed_precision,
-                    save_every=ac.save_every,
-                    max_saves=ac.max_saves
+                    optimizer=get_attr(ac, 'optimizer', 'adamw'),
+                    weight_decay=get_attr(ac, 'weight_decay', 1e-2),
+                    lr_scheduler=get_attr(ac, 'lr_scheduler', 'constant'),
+                    gradient_checkpointing=get_attr(ac, 'gradient_checkpointing', True),
+                    train_text_encoder=get_attr(ac, 'train_text_encoder', False),
+                    noise_scheduler=get_attr(ac, 'noise_scheduler', 'ddpm'),
+                    gradient_accumulation=get_attr(ac, 'gradient_accumulation', 1),
+                    mixed_precision=get_attr(ac, 'mixed_precision', 'fp16'),
+                    save_every=get_attr(ac, 'save_every', 250),
+                    max_saves=get_attr(ac, 'max_saves', 5)
                 )
 
             config = CharacterConfig(
