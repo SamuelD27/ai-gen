@@ -137,14 +137,14 @@
 
             const testData = {
                 name: `Test Dataset ${Date.now()}`,
-                images: [
-                    {
-                        filename: 'test1.jpg',
-                        url: '/media/test1.jpg',
-                        caption: 'Test image 1'
-                    }
-                ],
-                trigger_word: 'test_trigger'
+                trigger_word: 'test_trigger',
+                caption_template: 'a photo of {trigger} person',
+                auto_caption: true,
+                resize_images: true,
+                crop_images: true,
+                flip_images: false,
+                quality_filter: 'basic',
+                selected_images: ['test1.jpg', 'test2.jpg']  // List of image filenames
             };
 
             try {
@@ -193,14 +193,7 @@
 
             const testData = {
                 name: `Test Character ${Date.now()}`,
-                dataset_id: 1,
-                config: {
-                    steps: 800,
-                    batch_size: 1,
-                    learning_rate: 8e-4,
-                    train_dim: 512,
-                    rank_dim: 8
-                }
+                input_image_path: '/tmp/test-image.jpg'  // Required: path to an input image
             };
 
             try {
@@ -340,8 +333,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name: `Rate Test ${i}`,
-                        dataset_id: 1,
-                        config: {}
+                        input_image_path: '/tmp/test-image.jpg'
                     })
                 });
 

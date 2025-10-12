@@ -63,7 +63,6 @@ class Settings(BaseSettings):
     # Video Generation APIs
     COMET_API_KEY: str = ""  # CometAPI for Sora 2, VEO3, Runway
     OPENAI_API_KEY: str = ""  # Direct OpenAI Sora access
-    RUNPOD_API_KEY: str = ""  # RunPod API for cloud compute
     
     # Application Path
     APP_PATH: str = "../.."  # Path to main application
