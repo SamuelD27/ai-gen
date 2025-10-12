@@ -15,11 +15,11 @@ class RateLimiter:
     def __init__(self):
         self.requests: Dict[str, list] = defaultdict(list)
         self.limits = {
-            "auth": (5, 300),      # 5 requests per 5 minutes for auth endpoints
-            "upload": (10, 60),    # 10 uploads per minute
-            "training": (3, 3600), # 3 training sessions per hour
-            "inference": (20, 300), # 20 inference requests per 5 minutes
-            "default": (100, 60)   # 100 requests per minute for other endpoints
+            "auth": (10, 300),      # 10 requests per 5 minutes for auth endpoints
+            "upload": (50, 60),     # 50 uploads per minute
+            "training": (20, 3600), # 20 training sessions per hour (was 3 - too strict!)
+            "inference": (100, 300), # 100 inference requests per 5 minutes
+            "default": (200, 60)    # 200 requests per minute for other endpoints
         }
     
     def is_allowed(self, identifier: str, endpoint_type: str = "default") -> bool:
