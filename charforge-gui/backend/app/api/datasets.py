@@ -58,7 +58,7 @@ class CaptionUpdateRequest(BaseModel):
 class TriggerWordUpdateRequest(BaseModel):
     trigger_word: str
 
-@router.post("/", response_model=DatasetResponse)
+@router.post("/datasets", response_model=DatasetResponse)
 async def create_dataset(
     request: DatasetCreateRequest,
     background_tasks: BackgroundTasks,
@@ -69,7 +69,7 @@ async def create_dataset(
     import logging
     logger = logging.getLogger(__name__)
 
-    logger.info(f"📝 POST /api/datasets - Creating dataset '{request.name}' for user {current_user.id}")
+    logger.info(f"📝 POST /api/datasets/datasets - Creating dataset '{request.name}' for user {current_user.id}")
 
     # Validate input
     if not request.name.strip():
@@ -143,7 +143,7 @@ async def create_dataset(
     
     return dataset
 
-@router.get("/", response_model=DatasetListResponse)
+@router.get("/datasets", response_model=DatasetListResponse)
 async def list_datasets(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_optional)
@@ -152,7 +152,7 @@ async def list_datasets(
     import logging
     logger = logging.getLogger(__name__)
 
-    logger.info(f"📋 GET /api/datasets - Fetching datasets for user {current_user.id}")
+    logger.info(f"📋 GET /api/datasets/datasets - Fetching datasets for user {current_user.id}")
 
     datasets = db.query(Dataset).filter(
         Dataset.user_id == current_user.id
@@ -165,7 +165,7 @@ async def list_datasets(
         total=len(datasets)
     )
 
-@router.get("/{dataset_id}", response_model=DatasetResponse)
+@router.get("/datasets/{dataset_id}", response_model=DatasetResponse)
 async def get_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),
@@ -186,7 +186,7 @@ async def get_dataset(
     
     return dataset
 
-@router.get("/{dataset_id}/images", response_model=List[DatasetImageResponse])
+@router.get("/datasets/{dataset_id}/images", response_model=List[DatasetImageResponse])
 async def get_dataset_images(
     dataset_id: int,
     db: Session = Depends(get_db),
@@ -212,7 +212,7 @@ async def get_dataset_images(
     
     return images
 
-@router.put("/{dataset_id}/trigger-word")
+@router.put("/datasets/{dataset_id}/trigger-word")
 async def update_trigger_word(
     dataset_id: int,
     request: TriggerWordUpdateRequest,
@@ -244,7 +244,7 @@ async def update_trigger_word(
     
     return {"message": "Trigger word updated successfully"}
 
-@router.put("/{dataset_id}/images/{image_id}/caption")
+@router.put("/datasets/{dataset_id}/images/{image_id}/caption")
 async def update_image_caption(
     dataset_id: int,
     image_id: int,
@@ -283,7 +283,7 @@ async def update_image_caption(
     
     return {"message": "Caption updated successfully"}
 
-@router.delete("/{dataset_id}")
+@router.delete("/datasets/{dataset_id}")
 async def delete_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),

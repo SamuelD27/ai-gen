@@ -242,25 +242,25 @@ export interface CreateDatasetRequest {
 
 export const datasetApi = {
   createDataset: (data: CreateDatasetRequest): Promise<Dataset> =>
-    api.post('/datasets', data).then(res => res.data),
+    api.post('/datasets/datasets', data).then(res => res.data),
 
   getDatasets: (): Promise<{ datasets: Dataset[]; total: number }> =>
-    api.get('/datasets').then(res => res.data),
+    api.get('/datasets/datasets').then(res => res.data),
 
   getDataset: (id: number): Promise<Dataset> =>
-    api.get(`/datasets/${id}`).then(res => res.data),
+    api.get(`/datasets/datasets/${id}`).then(res => res.data),
 
   getDatasetImages: (id: number): Promise<DatasetImage[]> =>
-    api.get(`/datasets/${id}/images`).then(res => res.data),
+    api.get(`/datasets/datasets/${id}/images`).then(res => res.data),
 
   updateTriggerWord: (id: number, trigger_word: string): Promise<{ message: string }> =>
-    api.put(`/datasets/${id}/trigger-word`, { trigger_word }).then(res => res.data),
+    api.put(`/datasets/datasets/${id}/trigger-word`, { trigger_word }).then(res => res.data),
 
   updateImageCaption: (datasetId: number, imageId: number, caption: string): Promise<{ message: string }> =>
-    api.put(`/datasets/${datasetId}/images/${imageId}/caption`, { caption }).then(res => res.data),
+    api.put(`/datasets/datasets/${datasetId}/images/${imageId}/caption`, { caption }).then(res => res.data),
 
   deleteDataset: (id: number): Promise<{ message: string }> =>
-    api.delete(`/datasets/${id}`).then(res => res.data),
+    api.delete(`/datasets/datasets/${id}`).then(res => res.data),
 }
 
 export { api }
