@@ -257,25 +257,33 @@ async def start_training(
 
     # Validate model configuration if provided
     if request.model_config:
-        if request.model_config.dtype not in ["float16", "float32", "bfloat16"]:
+        # Handle both dict and ModelConfig object
+        dtype = request.model_config.dtype if hasattr(request.model_config, 'dtype') else request.model_config.get('dtype', 'float16')
+        if dtype not in ["float16", "float32", "bfloat16"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid data type. Must be float16, float32, or bfloat16"
             )
 
     # Validate MV Adapter configuration if enabled
-    if request.mv_adapter_config and request.mv_adapter_config.enabled:
-        if request.mv_adapter_config.num_views < 4 or request.mv_adapter_config.num_views > 12:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Number of views must be between 4 and 12"
-            )
+    if request.mv_adapter_config:
+        # Handle both dict and MVAdapterConfig object
+        enabled = request.mv_adapter_config.enabled if hasattr(request.mv_adapter_config, 'enabled') else request.mv_adapter_config.get('enabled', False)
+        if enabled:
+            num_views = request.mv_adapter_config.num_views if hasattr(request.mv_adapter_config, 'num_views') else request.mv_adapter_config.get('num_views', 6)
+            guidance_scale = request.mv_adapter_config.guidance_scale if hasattr(request.mv_adapter_config, 'guidance_scale') else request.mv_adapter_config.get('guidance_scale', 3.0)
 
-        if request.mv_adapter_config.guidance_scale < 1.0 or request.mv_adapter_config.guidance_scale > 20.0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Guidance scale must be between 1.0 and 20.0"
-            )
+            if num_views < 4 or num_views > 12:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Number of views must be between 4 and 12"
+                )
+
+            if guidance_scale < 1.0 or guidance_scale > 20.0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Guidance scale must be between 1.0 and 20.0"
+                )
 
     # Create training session
     training_session = TrainingSession(
