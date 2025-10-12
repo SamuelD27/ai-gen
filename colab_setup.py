@@ -290,21 +290,22 @@ def main():
         '/content/ai-gen/uploads',
         '/content/ai-gen/results'
     ]
+    all_dirs_exist = True
     for dir_path in dirs_to_check:
         if os.path.exists(dir_path):
             print(f"   ✅ {dir_path} exists")
         else:
             print(f"   ❌ {dir_path} MISSING")
-            test_results['directories'] = False
-    test_results['directories'] = True
+            all_dirs_exist = False
+    test_results['directories'] = all_dirs_exist
 
     # Test 4: Media upload
     print("\n4️⃣ Testing media upload...")
     try:
         # Create test image
-        img = Image.new('RGB', (512, 512), color='red')
+        img = Image.new('RGB', (512, 512), (255, 0, 0))  # Red color as RGB tuple
         img_bytes = io.BytesIO()
-        img.save(img_bytes, format='JPEG', quality=95)
+        img.save(img_bytes, format='JPEG')
         img_bytes.seek(0)
 
         # Upload
