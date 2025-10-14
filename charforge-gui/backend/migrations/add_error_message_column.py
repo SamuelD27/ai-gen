@@ -21,8 +21,11 @@ def upgrade():
 
         if not table_exists:
             print("⚠ training_sessions table doesn't exist yet - creating all tables first")
-            # Import here to avoid circular dependency
-            from app.core.database import Base
+            # Import Base and all models to populate metadata
+            from app.core.database import (
+                Base, User, Character, TrainingSession, InferenceJob,
+                AppSettings, Dataset, DatasetImage
+            )
             Base.metadata.create_all(engine)
             print("✓ Database tables created")
 
