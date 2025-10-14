@@ -1,20 +1,52 @@
+# IDE
 .idea/
+.vscode/
+.cursorignore
+
+# Python
 __pycache__/
-workflows/__pycache__/
-workflows/web/
-.env
+*.pyc
+*.pyo
+*.pyd
 venv/
 .venv/
-.cursorignore
+*.egg-info/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment
+.env
+.env.local
+
+# Jupyter
 .ipynb_checkpoints/
-.vscode/
-trash/
-.idea/
-output/
-.gradio/
-scratch/
+
+# Cache
 .cache/
+.gradio/
+
+# Project specific
+workflows/__pycache__/
+workflows/web/
+trash/
+output/
 scratch/
 red.jpg
 red2.jpg
 caption_fixer.py
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Media and outputs
+media/
+uploads/
+results/
+loras/
