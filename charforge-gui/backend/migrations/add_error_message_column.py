@@ -10,7 +10,23 @@ from app.core.database import engine
 def upgrade():
     """Add error_message column to training_sessions table."""
     with engine.connect() as conn:
-        # Check if column already exists
+        # First check if the table exists
+        table_check = conn.execute(text("""
+            SELECT COUNT(*) as count
+            FROM sqlite_master
+            WHERE type='table' AND name='training_sessions'
+        """))
+
+        table_exists = table_check.fetchone()[0] > 0
+
+        if not table_exists:
+            print("⚠ training_sessions table doesn't exist yet - creating all tables first")
+            # Import here to avoid circular dependency
+            from app.core.database import Base
+            Base.metadata.create_all(engine)
+            print("✓ Database tables created")
+
+        # Now check if column exists
         result = conn.execute(text("""
             SELECT COUNT(*) as count
             FROM pragma_table_info('training_sessions')
