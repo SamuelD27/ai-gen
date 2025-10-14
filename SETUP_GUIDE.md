@@ -90,6 +90,49 @@ Access at: http://localhost:5173
 
 ---
 
+## Database Migrations
+
+After pulling updates from the repository, you may need to run database migrations to update your database schema.
+
+### Running Migrations
+
+**Google Colab:**
+```python
+# Run Cell 3 in the Colab notebook
+# This will automatically apply all pending migrations
+```
+
+**Local Setup:**
+```bash
+cd charforge-gui/backend
+python run_migrations.py
+```
+
+### Migration Commands
+
+```bash
+# Run all migrations
+python run_migrations.py
+
+# List available migrations
+python run_migrations.py --list
+
+# Run a specific migration
+python run_migrations.py --single add_error_message_column.py
+```
+
+### When to Run Migrations
+
+Run migrations when:
+- You pull new code from the repository
+- You see database-related errors (e.g., "no such column")
+- You're setting up a fresh installation
+- Documentation mentions schema changes
+
+**Note**: Migrations are safe to run multiple times. If a migration has already been applied, it will be skipped automatically.
+
+---
+
 ## Configuration
 
 ### Required API Keys
@@ -155,21 +198,41 @@ ai-gen/
 !cd /content/ai-gen/charforge-gui/backend && python -c "from app.core.database import Base, engine; Base.metadata.create_all(engine)"
 ```
 
-#### 3. Training Session Stuck
+#### 3. "no such column: training_sessions.error_message"
+**Symptoms**: Error when deleting characters or viewing training sessions
+
+**Cause**: Database schema is outdated (missing error_message column)
+
+**Solution**:
+```python
+# In Colab - Run Cell 3 to apply migrations
+# Or run manually:
+!cd /content/ai-gen/charforge-gui/backend && python run_migrations.py
+```
+
+```bash
+# Local setup
+cd charforge-gui/backend
+python run_migrations.py
+```
+
+**Why this happens**: The error_message column was added to track detailed error information for failed training sessions. If your database was created before this update, you need to run migrations to add the column.
+
+#### 4. Training Session Stuck
 **Symptom**: Session shows "pending" forever
 
 **Solution**:
 - Use "Cancel Training" button in UI
 - Or run cleanup cell in Colab notebook
 
-#### 4. Out of Memory
+#### 5. Out of Memory
 **Solutions**:
 - Reduce batch size to 1
 - Reduce train_dim to 256
 - Use smaller image resolution
 - Restart Colab session
 
-#### 5. No GPU Detected
+#### 6. No GPU Detected
 **Solution**:
 - Runtime → Change runtime type → T4 GPU or A100 GPU
 - Restart runtime
