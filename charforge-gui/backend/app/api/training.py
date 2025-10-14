@@ -723,6 +723,7 @@ async def get_all_training_sessions(
             "learning_rate": session.learning_rate,
             "rank_dim": session.rank_dim,
             "train_dim": session.train_dim,
+            "error_message": getattr(session, 'error_message', None),  # Handle missing column gracefully
             "created_at": session.created_at,
             "started_at": session.started_at,
             "completed_at": session.completed_at
