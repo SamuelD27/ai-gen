@@ -565,19 +565,42 @@ class MasukaSetup:
         os.chdir(backend_dir)
 
         try:
-            # Import database models to trigger table creation/migration
+            # Import database models
             sys.path.insert(0, str(backend_dir))
 
             from app.core.database import Base, engine, SessionLocal, TrainingSession, Character
             from app.core import database  # Import to ensure all models are loaded
 
-            # Create/update all tables based on current models
-            print_info("Creating/updating database tables...")
-            Base.metadata.create_all(bind=engine)
+            # Run migration scripts
+            migrations_dir = backend_dir / "migrations"
+            if migrations_dir.exists():
+                migration_files = sorted([f for f in migrations_dir.glob("*.py") if f.stem != "__init__"])
+
+                if migration_files:
+                    print_info(f"Found {len(migration_files)} migration scripts")
+
+                    for migration_file in migration_files:
+                        print_info(f"  Running: {migration_file.name}")
+                        try:
+                            # Load and run migration
+                            import importlib.util
+                            spec = importlib.util.spec_from_file_location(migration_file.stem, migration_file)
+                            migration = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(migration)
+
+                            if hasattr(migration, 'upgrade'):
+                                migration.upgrade()
+                        except Exception as e:
+                            print_warning(f"  Migration {migration_file.name} failed: {e}")
+                            # Continue with other migrations
+                else:
+                    print_info("No migration scripts found, using metadata.create_all()")
+                    Base.metadata.create_all(bind=engine)
+            else:
+                print_info("No migrations directory found, creating tables from models...")
+                Base.metadata.create_all(bind=engine)
 
             print_success("Database migration complete")
-            print_info("New columns added: Character.dataset_id, Character.trigger_word")
-            print_info("Modified: Character.input_image_path (now nullable)")
 
             # Clean up stuck training sessions
             print_info("Cleaning up stuck training sessions...")
